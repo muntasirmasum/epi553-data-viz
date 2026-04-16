@@ -1,0 +1,429 @@
+[
+  {
+    "objectID": "Data_Visualization_Lecture.html#roadmap",
+    "href": "Data_Visualization_Lecture.html#roadmap",
+    "title": "Data Visualization in R",
+    "section": "Roadmap",
+    "text": "Roadmap\n\n\nFoundations\n\nWhy visualization is a methods topic\nThe grammar of graphics\nHealy’s principles: honesty, clarity, comparison\nHoltz’s chart-type decision tree\nScherer’s editorial approach\nA worked transformation: same data, four iterations\n\n\nModern Techniques\n\nColor, type, and accessibility\ngghighlight, animation, interactivity\nDistributions, uncertainty, heatmaps\nPatchwork, annotation, spatial viz\nVisualizing regression models\nThe #30DayChartChallenge\nBuilding your own reusable theme"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#why-visualization-is-a-methods-topic",
+    "href": "Data_Visualization_Lecture.html#why-visualization-is-a-methods-topic",
+    "title": "Data Visualization in R",
+    "section": "Why Visualization Is a Methods Topic",
+    "text": "Why Visualization Is a Methods Topic\nStatistics gives us numbers. Visualization makes them mean something."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#three-reasons",
+    "href": "Data_Visualization_Lecture.html#three-reasons",
+    "title": "Data Visualization in R",
+    "section": "Three Reasons",
+    "text": "Three Reasons\n\nVisualization is part of the analysis, not decoration. A scatterplot reveals a non-linear relationship that a correlation coefficient hides. A residual plot exposes a violated assumption that an R-squared celebrates.\nVisualization is how findings reach decision-makers. A clinician, journalist, or policymaker will not read your beta coefficients. They will look at your figure. The figure is the one part of the paper that everyone reads.\nVisualization is a discipline with its own theory. Bad charts are not just ugly, they are wrong. They make comparisons hard, hide variation, and encode noise as signal.\n\n\n\n“Above all else, show the data.” – Edward Tufte"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-same-data-completely-different-stories",
+    "href": "Data_Visualization_Lecture.html#the-same-data-completely-different-stories",
+    "title": "Data Visualization in R",
+    "section": "The Same Data, Completely Different Stories",
+    "text": "The Same Data, Completely Different Stories\n\n\nFigure 1: Anscombe’s Quartet: four datasets with identical summary statistics but radically different patterns.\n\nEvery analysis you do should begin and end with looking at the data."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-grammar-of-graphics",
+    "href": "Data_Visualization_Lecture.html#the-grammar-of-graphics",
+    "title": "Data Visualization in R",
+    "section": "The Grammar of Graphics",
+    "text": "The Grammar of Graphics\nLeland Wilkinson (1999) described a unified framework. Hadley Wickham translated it into ggplot2 (2005)."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-seven-layers",
+    "href": "Data_Visualization_Lecture.html#the-seven-layers",
+    "title": "Data Visualization in R",
+    "section": "The Seven Layers",
+    "text": "The Seven Layers\n\n\nCore structure\n\nData\n\nWhat data am I plotting?\nggplot(data = ...)\n\nAesthetics\n\nWhich variables map to x, y, color, size?\naes(x, y, color, size)\n\nGeometries\n\nWhat shape do I draw?\ngeom_point(), geom_line(), geom_col()\n\nFacets\n\nDo I split into small multiples?\nfacet_wrap() / facet_grid()\n\n\n\nRefinement layers\n\nStatistics\n\nDo I summarize or transform?\nstat_*() / geom_smooth()\n\nCoordinates and scales\n\nHow are axes and scales defined?\ncoord_*() / scale_*()\n\nTheme\n\nHow does it look?\ntheme_*() / theme()\n\n\n\nThink of these as a checklist: data, mapping, marks, splits, summaries, scales, polish.\n\n\n\nThe genius is composability: to go from a scatterplot to a faceted scatterplot with a smoother, you add layers; you do not start over."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#building-a-plot-layer-by-layer",
+    "href": "Data_Visualization_Lecture.html#building-a-plot-layer-by-layer",
+    "title": "Data Visualization in R",
+    "section": "Building a Plot Layer by Layer",
+    "text": "Building a Plot Layer by Layer\n\n\nShow the code\nggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +\n  geom_point(alpha = 0.7, size = 2.5) +\n  geom_smooth(method = \"lm\", se = FALSE, linewidth = 1) +\n  facet_wrap(~ island) +\n  scale_color_manual(values = epi_colors) +\n  labs(title = \"Bill Dimensions of Palmer Penguins\",\n       subtitle = \"By species and island, with linear trend lines\",\n       x = \"Bill length (mm)\", y = \"Bill depth (mm)\",\n       color = \"Species\")\n\n\n\n\nFigure 2"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-ggplot2-template",
+    "href": "Data_Visualization_Lecture.html#the-ggplot2-template",
+    "title": "Data Visualization in R",
+    "section": "The ggplot2 Template",
+    "text": "The ggplot2 Template\nEvery ggplot follows the same skeleton:\n\nggplot(data = &lt;DATA&gt;,                       # 1. Data\n       aes(x = &lt;X&gt;, y = &lt;Y&gt;, color = &lt;Z&gt;)) # 2. Aesthetics\n  + geom_&lt;TYPE&gt;(...)                        # 3. Geometry\n  + facet_wrap(~ &lt;VAR&gt;)                     # 4. Facets\n  + scale_&lt;AES&gt;_&lt;TYPE&gt;(...)                 # 5. Scales\n  + labs(title = \"...\", x = \"...\", y = \"...\") # 6. Labels\n  + theme_minimal()                         # 7. Theme\n\n\nYou will use this template for every chart in this course and beyond."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#kieran-healys-principles",
+    "href": "Data_Visualization_Lecture.html#kieran-healys-principles",
+    "title": "Data Visualization in R",
+    "section": "Kieran Healy’s Principles",
+    "text": "Kieran Healy’s Principles\nIs the chart substantively good? Perceptually good? Aesthetically good?"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#substantive-standards",
+    "href": "Data_Visualization_Lecture.html#substantive-standards",
+    "title": "Data Visualization in R",
+    "section": "Substantive Standards",
+    "text": "Substantive Standards\n\n\nThe Rules\n\nShow the data. Individual observations, not just summaries\nCompare like with like. Stratify intentionally\nQuantify uncertainty. Always show CIs or standard errors\n\n\n\n\n\n\n\n\n\n\nFigure 3"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#perceptual-standards",
+    "href": "Data_Visualization_Lecture.html#perceptual-standards",
+    "title": "Data Visualization in R",
+    "section": "Perceptual Standards",
+    "text": "Perceptual Standards\nCleveland & McGill (1984) ranked visual encodings by accuracy:\n\n\nFigure 4"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#practical-implication",
+    "href": "Data_Visualization_Lecture.html#practical-implication",
+    "title": "Data Visualization in R",
+    "section": "Practical Implication",
+    "text": "Practical Implication\n\nPrefer dot plots and bar charts to pie charts. Prefer faceting to stacking. Use color for categories, not for quantities (unless you use a perceptually uniform scale like viridis).\n\n\n\nWeak encoding (angle)\n\n\n\n\n\n\n\n\n\n\nStrong encoding (position)"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#aesthetic-standards",
+    "href": "Data_Visualization_Lecture.html#aesthetic-standards",
+    "title": "Data Visualization in R",
+    "section": "Aesthetic Standards",
+    "text": "Aesthetic Standards\nHealy’s third pillar is what beginners notice last but readers notice first:\n\nTypography: one font family, bold title, grey subtitle, tiny caption\nWhite space: let the chart breathe\nAlignment: consistent margins and axes\nColor harmony: restrained, purposeful palettes\nDirect labeling: labels next to the data, not in a legend\n\n\nA clean theme, restrained gridlines, and direct labeling will make a competent chart feel professional."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#choosing-the-right-chart-type",
+    "href": "Data_Visualization_Lecture.html#choosing-the-right-chart-type",
+    "title": "Data Visualization in R",
+    "section": "Choosing the Right Chart Type",
+    "text": "Choosing the Right Chart Type\nYan Holtz’s From Data to Viz decision tree"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#chart-type-decision-guide",
+    "href": "Data_Visualization_Lecture.html#chart-type-decision-guide",
+    "title": "Data Visualization in R",
+    "section": "Chart Type Decision Guide",
+    "text": "Chart Type Decision Guide\n\n\nStart with the data structure\n\nOne numeric Histogram, density, boxplot, violin\nOne categorical Bar chart, lollipop, treemap\nTwo numeric Scatterplot, hexbin, 2D density\nNumeric x categorical Boxplot, violin, ridge, jitter + summary\n\n\nThen ask what to avoid\n\nTwo categorical Heatmap or mosaic before grouped bars\nTime series Prefer line, area, slope; avoid bars by default\nMap data Normalize before choropleths\nNetwork Avoid force-directed hairballs with large node counts\n\n\nIf the audience’s main task is comparison, choose a chart that encodes values by position.\n\n\n\nBookmark these: data-to-viz.com | r-graph-gallery.com"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-anti-pie-chart-argument",
+    "href": "Data_Visualization_Lecture.html#the-anti-pie-chart-argument",
+    "title": "Data Visualization in R",
+    "section": "The Anti-Pie-Chart Argument",
+    "text": "The Anti-Pie-Chart Argument\n\n\nShow the code\ndat &lt;- tibble(group = LETTERS[1:6],\n              value = c(22, 18, 17, 16, 14, 13))\n\np1 &lt;- ggplot(dat, aes(x = \"\", y = value, fill = group)) +\n  geom_col(width = 1) +\n  coord_polar(\"y\") +\n  scale_fill_brewer(palette = \"Set2\") +\n  labs(title = \"Pie chart\") +\n  theme_void(base_size = 14) +\n  theme(plot.title = element_text(face = \"bold\", hjust = 0.5))\n\np2 &lt;- ggplot(dat, aes(x = value, y = fct_reorder(group, value))) +\n  geom_col(fill = \"steelblue\", width = 0.7) +\n  geom_text(aes(label = value), hjust = -0.3, fontface = \"bold\") +\n  scale_x_continuous(expand = expansion(mult = c(0, 0.1))) +\n  labs(title = \"Sorted bar chart\", x = NULL, y = NULL) +\n  theme_epi553()\n\np1 + p2 +\n  plot_annotation(title = \"Pie charts encode angles. Bar charts encode position.\",\n                  subtitle = \"Which one lets you instantly rank the groups?\",\n                  theme = theme(plot.title = element_text(face = \"bold\", size = 16),\n                                plot.subtitle = element_text(color = \"grey40\")))\n\n\n\n\nFigure 5"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-editorial-style",
+    "href": "Data_Visualization_Lecture.html#the-editorial-style",
+    "title": "Data Visualization in R",
+    "section": "The Editorial Style",
+    "text": "The Editorial Style\nCedric Scherer’s approach: from default to publication"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-scherer-approach",
+    "href": "Data_Visualization_Lecture.html#the-scherer-approach",
+    "title": "Data Visualization in R",
+    "section": "The Scherer Approach",
+    "text": "The Scherer Approach\n\n\n\nStart with the data, not the chart type\nStrip ruthlessly: remove gridlines, grey backgrounds, redundant titles\nDirect label: put labels next to the lines, not in a legend\nUse type as design: bold title, italic subtitle, grey caption\nAnnotate: callouts, arrows, shaded regions\nIterate: 20+ versions is normal\n\n\nThe Tools\n\n\n\nPackage\nPurpose\n\n\n\n\nggtext\nMarkdown in titles\n\n\npatchwork\nMulti-panel figures\n\n\nggrepel\nNon-overlapping labels\n\n\nshowtext\nCustom Google Fonts\n\n\nMetBrewer\nArt-inspired palettes\n\n\nggdist\nUncertainty + distributions"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#editorial-example-direct-labels-replace-legends",
+    "href": "Data_Visualization_Lecture.html#editorial-example-direct-labels-replace-legends",
+    "title": "Data Visualization in R",
+    "section": "Editorial Example: Direct Labels Replace Legends",
+    "text": "Editorial Example: Direct Labels Replace Legends\n\n\nShow the ggplot2 code\nlibrary(ggrepel)\n\npenguin_means &lt;- penguins |&gt;\n  drop_na() |&gt;\n  summarise(mass = mean(body_mass_g), .by = c(species, year))\n\nggplot(penguin_means, aes(x = year, y = mass, color = species)) +\n  geom_line(linewidth = 1.4) +\n  geom_point(size = 3.5) +\n  geom_text_repel(\n    data = filter(penguin_means, year == max(year)),\n    aes(label = species),\n    hjust = 0, nudge_x = 0.15, direction = \"y\",\n    segment.color = NA, fontface = \"bold\", size = 5\n  ) +\n  scale_color_manual(values = epi_colors) +\n  scale_x_continuous(breaks = 2007:2009,\n                     expand = expansion(mult = c(0.05, 0.25))) +\n  labs(title = \"Average Body Mass of Palmer Penguins, 2007-2009\",\n       subtitle = \"Direct labels replace the legend; gridlines are softened\",\n       x = NULL, y = \"Body mass (g)\",\n       caption = \"Source: palmerpenguins R package\") +\n  theme(legend.position = \"none\",\n        panel.grid.major.x = element_blank())\n\n\n\n\nFigure 6"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#a-worked-transformation",
+    "href": "Data_Visualization_Lecture.html#a-worked-transformation",
+    "title": "Data Visualization in R",
+    "section": "A Worked Transformation",
+    "text": "A Worked Transformation\nSame data. Four versions. Watch the evolution."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#iteration-1-the-default",
+    "href": "Data_Visualization_Lecture.html#iteration-1-the-default",
+    "title": "Data Visualization in R",
+    "section": "Iteration 1: The Default",
+    "text": "Iteration 1: The Default\n\nggplot(penguins, aes(x = species, y = body_mass_g)) +\n  geom_boxplot() +\n  theme_grey(base_size = 14)\n\n\n\nFigure 7\n\nHonest. Also forgettable."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#iteration-2-show-the-data",
+    "href": "Data_Visualization_Lecture.html#iteration-2-show-the-data",
+    "title": "Data Visualization in R",
+    "section": "Iteration 2: Show the Data",
+    "text": "Iteration 2: Show the Data\n\nggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +\n  geom_boxplot(alpha = 0.5, outlier.shape = NA) +\n  geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +\n  scale_fill_manual(values = epi_colors) +\n  theme_epi553() +\n  theme(legend.position = \"none\")\n\n\n\nFigure 8\n\nNow we see how many penguins are in each species and where the outliers actually live."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#iteration-3-labels-and-theme",
+    "href": "Data_Visualization_Lecture.html#iteration-3-labels-and-theme",
+    "title": "Data Visualization in R",
+    "section": "Iteration 3: Labels and Theme",
+    "text": "Iteration 3: Labels and Theme\n\nggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +\n  geom_boxplot(alpha = 0.5, outlier.shape = NA, color = \"grey20\") +\n  geom_jitter(width = 0.2, alpha = 0.4, color = \"grey30\", size = 1.5) +\n  scale_fill_manual(values = epi_colors) +\n  labs(title = \"Body Mass of Palmer Penguins by Species\",\n       subtitle = \"Boxplots with individual observations overlaid\",\n       x = NULL, y = \"Body mass (g)\") +\n  theme(legend.position = \"none\")\n\n\n\nFigure 9"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#iteration-4-editorial-polish",
+    "href": "Data_Visualization_Lecture.html#iteration-4-editorial-polish",
+    "title": "Data Visualization in R",
+    "section": "Iteration 4: Editorial Polish",
+    "text": "Iteration 4: Editorial Polish\n\n\nShow the code\nlibrary(ggdist)\n\nggplot(drop_na(penguins, body_mass_g),\n       aes(x = species, y = body_mass_g, fill = species)) +\n  stat_halfeye(adjust = 0.5, width = 0.6, .width = 0,\n               justification = -0.3, point_color = NA) +\n  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.7) +\n  geom_jitter(width = 0.05, alpha = 0.3, size = 1.2) +\n  scale_fill_manual(values = epi_colors) +\n  coord_cartesian(xlim = c(1.2, NA), clip = \"off\") +\n  labs(title = \"Gentoo Penguins Are Substantially Heavier\",\n       subtitle = \"Distribution, median, and individual observations of body mass by species\",\n       x = NULL, y = \"Body mass (g)\",\n       caption = \"Source: palmerpenguins R package\") +\n  theme(legend.position = \"none\",\n        panel.grid.major.x = element_blank())\n\n\n\n\nFigure 10\n\nThe final chart shows the distribution (raincloud), the summary (boxplot), the raw data (jitter), and a conclusion baked into the title. That is the difference between a chart and a finding."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#iterations-1-and-2-from-default-to-honest",
+    "href": "Data_Visualization_Lecture.html#iterations-1-and-2-from-default-to-honest",
+    "title": "Data Visualization in R",
+    "section": "Iterations 1 and 2: From Default to Honest",
+    "text": "Iterations 1 and 2: From Default to Honest\n\n\nFigure 11"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#iterations-3-and-4-from-clean-to-editorial",
+    "href": "Data_Visualization_Lecture.html#iterations-3-and-4-from-clean-to-editorial",
+    "title": "Data Visualization in R",
+    "section": "Iterations 3 and 4: From Clean to Editorial",
+    "text": "Iterations 3 and 4: From Clean to Editorial\n\n\nFigure 12"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#explore-these-online",
+    "href": "Data_Visualization_Lecture.html#explore-these-online",
+    "title": "Data Visualization in R",
+    "section": "Explore These Online",
+    "text": "Explore These Online\nKeep this list short during lecture; share the longer reading list on Brightspace or in your notes.\n\n\nStart here\n\nFrom Data to Viz\nR Graph Gallery\nFundamentals of Data Visualization\n\n\nFor inspiration\n\nCedric Scherer’s portfolio\nThe Pudding\nOur World in Data"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#foundations-summary",
+    "href": "Data_Visualization_Lecture.html#foundations-summary",
+    "title": "Data Visualization in R",
+    "section": "Foundations Summary",
+    "text": "Foundations Summary\n\n\n\nBuild in layers Start with data, mapping, and geometry\nShow the data Prefer raw observations plus a summary\nUse strong encodings Position usually beats area and color\nQuantify uncertainty CIs and distribution displays matter\n\n\n\nLabel directly Reduce legend lookups when you can\nStrip clutter Remove anything that does not aid comparison\nWrite takeaway titles Titles should state the finding\nIterate Your fourth version is often the best one"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#color-type-and-accessibility",
+    "href": "Data_Visualization_Lecture.html#color-type-and-accessibility",
+    "title": "Data Visualization in R",
+    "section": "Color, Type, and Accessibility",
+    "text": "Color, Type, and Accessibility\nChoosing color is a design and an ethics decision."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#color-principles",
+    "href": "Data_Visualization_Lecture.html#color-principles",
+    "title": "Data Visualization in R",
+    "section": "Color Principles",
+    "text": "Color Principles\n\n\nThe Four Types of Color Scales\n\nCategorical / Qualitative: distinct hues, no ranking\n\nSet2, Dark2, Okabe-Ito\n\nSequential: light to dark, one or two hues\n\nviridis, mako, Blues\n\nDiverging: two hues meeting at a neutral midpoint\n\nRdBu, BrBG (only when there is a meaningful zero)\n\nHighlight: one color for the story, grey for context\n\n\n\n\n\n\n\n\n\n\nFigure 13"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#why-colorblind-safety-matters",
+    "href": "Data_Visualization_Lecture.html#why-colorblind-safety-matters",
+    "title": "Data Visualization in R",
+    "section": "Why Colorblind Safety Matters",
+    "text": "Why Colorblind Safety Matters\nAbout 8% of men and 0.5% of women have some form of color vision deficiency.\n\n\nFigure 14\n\nRule of thumb: use viridis-family palettes by default. Check with colorBlindness::cvdPlot() or coblis.com."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#typography-and-direct-labeling",
+    "href": "Data_Visualization_Lecture.html#typography-and-direct-labeling",
+    "title": "Data Visualization in R",
+    "section": "Typography and Direct Labeling",
+    "text": "Typography and Direct Labeling\n\n\nTypography Rules\n\nOne font family consistently\nTitle: bold, slightly larger\nSubtitle: regular, grey\nCaption: small, grey, data source\nAvoid serifs in dense charts\nGood sans-serifs: Atkinson Hyperlegible, Inter, Source Sans Pro\n\n\nDirect Labeling\nPut the label next to the thing it labels.\nLegends force the eye to bounce between chart and key.\nDirect labels eliminate that bounce.\n\n# Instead of a legend:\ngeom_text_repel(\n  data = filter(df, year == max(year)),\n  aes(label = group)\n)"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-visualization-checklist",
+    "href": "Data_Visualization_Lecture.html#the-visualization-checklist",
+    "title": "Data Visualization in R",
+    "section": "The Visualization Checklist",
+    "text": "The Visualization Checklist\n\nBefore you submit a chart, ask:\n\nDoes the title state the finding, not the topic?\nIs the y-axis at zero (for bar charts) or appropriately scaled?\nAre units labeled?\nIs there a source caption?\nIs the color palette colorblind-safe?\nAre uncertainty intervals shown?\nCould a reader explain the chart in one sentence?"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#modern-techniques-and-advanced-aesthetics",
+    "href": "Data_Visualization_Lecture.html#modern-techniques-and-advanced-aesthetics",
+    "title": "Data Visualization in R",
+    "section": "Modern Techniques and Advanced Aesthetics",
+    "text": "Modern Techniques and Advanced Aesthetics\nThe “show me what is possible” tour."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#highlighting-with-gghighlight",
+    "href": "Data_Visualization_Lecture.html#highlighting-with-gghighlight",
+    "title": "Data Visualization in R",
+    "section": "8.1 Highlighting with gghighlight",
+    "text": "8.1 Highlighting with gghighlight\nMany groups, but only a few matter to your story. Highlighting fades out the context.\n\n\n\nlibrary(gghighlight)\n\ngapminder_like &lt;- penguins |&gt;\n  drop_na() |&gt;\n  summarise(\n    mean_mass = mean(body_mass_g),\n    .by = c(species, year)\n  )\n\nggplot(gapminder_like,\n       aes(x = year, y = mean_mass,\n           color = species)) +\n  geom_line(linewidth = 1.4) +\n  geom_point(size = 3.5) +\n  gghighlight(\n    species == \"Gentoo\",\n    unhighlighted_params = list(\n      color = \"grey80\",\n      linewidth = 0.8)) +\n  scale_color_manual(\n    values = c(\"Gentoo\" = \"#2E86AB\"))\n\n\n\n\n\n\n\n\n\n\nFigure 15\n\n\n\n\n\n\n\nThe eye is drawn instantly to the highlighted line, but the reader still has full context."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#animation-with-gganimate",
+    "href": "Data_Visualization_Lecture.html#animation-with-gganimate",
+    "title": "Data Visualization in R",
+    "section": "8.2 Animation with gganimate",
+    "text": "8.2 Animation with gganimate\nTime-series and longitudinal data come alive when animated. Build a standard ggplot, then add a transition_*() layer.\n\nlibrary(gganimate)\nlibrary(gapminder)\n\np &lt;- ggplot(gapminder,\n            aes(x = gdpPercap, y = lifeExp, size = pop, color = continent)) +\n  geom_point(alpha = 0.7) +\n  scale_x_log10() +\n  scale_size(range = c(2, 12), guide = \"none\") +\n  scale_color_brewer(palette = \"Set2\") +\n  labs(title = \"Year: {frame_time}\",\n       x = \"GDP per capita (log scale)\", y = \"Life expectancy (years)\") +\n  theme_epi553() +\n  transition_time(year) +        # &lt;-- this is the only new line\n  ease_aes(\"cubic-in-out\")\n\nanimate(p, nframes = 100, fps = 10, width = 800, height = 500)\n\nKey Transition Functions\n\n\n\n\n\n\n\n\nFunction\nWhat it animates\nExample\n\n\n\n\ntransition_time()\nContinuous variable (year, day)\nGapminder bubble chart\n\n\ntransition_states()\nDiscrete variable, pauses on each\nBefore/after comparison\n\n\ntransition_reveal()\nProgressive reveal along an axis\nDrawing a time series\n\n\n\n\nTip from Cedric Scherer: animations should serve a narrative purpose. If the same insight is clearer in a static small-multiple, prefer the static version."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#interactive-charts",
+    "href": "Data_Visualization_Lecture.html#interactive-charts",
+    "title": "Data Visualization in R",
+    "section": "8.3 Interactive Charts",
+    "text": "8.3 Interactive Charts\nplotly: instant interactivity from any ggplot\n\nlibrary(plotly)\n\np &lt;- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g,\n                          color = species,\n                          text = paste0(\"Island: \", island,\n                                        \"&lt;br&gt;Sex: \", sex,\n                                        \"&lt;br&gt;Year: \", year))) +\n  geom_point(alpha = 0.7, size = 2) +\n  scale_color_manual(values = epi_colors) +\n  labs(x = \"Bill length (mm)\", y = \"Body mass (g)\") +\n  theme_epi553(base_size = 11)\n\nggplotly(p, tooltip = \"text\", height = 400)\n\n\n\n\n\n\n\nFigure 16"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#interactive-charts-ggiraph",
+    "href": "Data_Visualization_Lecture.html#interactive-charts-ggiraph",
+    "title": "Data Visualization in R",
+    "section": "8.3 Interactive Charts: ggiraph",
+    "text": "8.3 Interactive Charts: ggiraph\nggiraph: finer control, hover effects, click events. Hover over points below!\n\n\nShow the ggiraph code\nlibrary(ggiraph)\n\np &lt;- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g, color = species)) +\n  geom_point_interactive(\n    aes(tooltip = paste(\"Species:\", species, \"&lt;br&gt;Island:\", island,\n                        \"&lt;br&gt;Mass:\", body_mass_g, \"g\"),\n        data_id = species),\n    size = 2.5, alpha = 0.7\n  ) +\n  scale_color_manual(values = epi_colors) +\n  labs(x = \"Bill length (mm)\", y = \"Body mass (g)\") +\n  theme_epi553(base_size = 11)\n\ngirafe(ggobj = p, height_svg = 3.5, width_svg = 8,\n       options = list(\n         opts_hover(css = \"stroke:black;stroke-width:2px;fill-opacity:1;\"),\n         opts_hover_inv(css = \"opacity:0.2;\")\n       ))\n\n\n\n\n\n\n\n\nFigure 17"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#distributions-raincloud-plots",
+    "href": "Data_Visualization_Lecture.html#distributions-raincloud-plots",
+    "title": "Data Visualization in R",
+    "section": "8.4 Distributions: Raincloud Plots",
+    "text": "8.4 Distributions: Raincloud Plots\nBoxplots hide bimodality. Histograms hide group differences. Raincloud plots show everything.\n\n\nShow the code\nlibrary(ggdist)\n\nggplot(drop_na(penguins, body_mass_g),\n       aes(x = body_mass_g, y = species, fill = species)) +\n  stat_halfeye(adjust = 0.6, .width = 0, justification = -0.2,\n               point_color = NA, alpha = 0.7) +\n  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.5) +\n  geom_jitter(height = 0.07, alpha = 0.3, size = 1.2) +\n  scale_fill_manual(values = epi_colors) +\n  labs(title = \"Raincloud Plot of Penguin Body Mass\",\n       subtitle = \"Distribution + boxplot + raw observations in one chart\",\n       x = \"Body mass (g)\", y = NULL) +\n  theme(legend.position = \"none\")\n\n\n\n\nFigure 18"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#distributions-ridge-plots",
+    "href": "Data_Visualization_Lecture.html#distributions-ridge-plots",
+    "title": "Data Visualization in R",
+    "section": "8.4 Distributions: Ridge Plots",
+    "text": "8.4 Distributions: Ridge Plots\nWhen you want to compare distributions across many groups in a small space.\n\n\nShow the code\nlibrary(ggridges)\n\nggplot(diamonds, aes(x = price, y = cut, fill = cut)) +\n  geom_density_ridges(alpha = 0.8, scale = 1.1) +\n  scale_x_log10(labels = label_dollar()) +\n  scale_fill_viridis_d(option = \"mako\") +\n  labs(title = \"Distribution of Diamond Prices by Cut\",\n       subtitle = \"Ridge plots make many distributions easy to compare\",\n       x = \"Price (log scale)\", y = NULL) +\n  theme(legend.position = \"none\")\n\n\n\n\nFigure 19"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#uncertainty-you-can-see",
+    "href": "Data_Visualization_Lecture.html#uncertainty-you-can-see",
+    "title": "Data Visualization in R",
+    "section": "8.5 Uncertainty You Can See",
+    "text": "8.5 Uncertainty You Can See\nConfidence intervals as skinny error bars often get missed. Show the whole distribution.\n\n\nShow the code\nlibrary(ggdist)\nlibrary(distributional)\n\nestimates &lt;- tibble(\n  predictor = c(\"Smoking\", \"Exercise\", \"Income\", \"Sleep\", \"Age\"),\n  estimate  = c(0.65, -0.45, -0.20, -0.30, 0.05),\n  se        = c(0.10, 0.08, 0.07, 0.09, 0.04)\n)\n\nggplot(estimates, aes(y = fct_reorder(predictor, estimate),\n                      xdist = dist_normal(estimate, se))) +\n  stat_halfeye(.width = c(0.5, 0.95), fill = \"#2E86AB\",\n               slab_alpha = 0.6, point_size = 3.5) +\n  geom_vline(xintercept = 0, linetype = \"dashed\", color = \"grey40\") +\n  labs(title = \"Coefficient Plot with Full Sampling Distributions\",\n       subtitle = \"Thick band = 50% interval, thin line = 95% interval\",\n       x = \"Log odds ratio\", y = NULL)\n\n\n\n\nFigure 20\n\nThis is far more honest than a forest plot of point estimates with whiskers, because the reader can see the shape of the uncertainty."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#patchwork-composing-multi-panel-figures",
+    "href": "Data_Visualization_Lecture.html#patchwork-composing-multi-panel-figures",
+    "title": "Data Visualization in R",
+    "section": "8.6 Patchwork: Composing Multi-Panel Figures",
+    "text": "8.6 Patchwork: Composing Multi-Panel Figures\n\n\nShow the patchwork code\np_scatter &lt;- ggplot(penguins, aes(bill_length_mm, body_mass_g, color = species)) +\n  geom_point(alpha = 0.7, size = 2) +\n  scale_color_manual(values = epi_colors) +\n  theme(legend.position = \"none\") +\n  labs(x = \"Bill length (mm)\", y = \"Body mass (g)\")\n\np_top &lt;- ggplot(penguins, aes(bill_length_mm, fill = species)) +\n  geom_density(alpha = 0.6) +\n  scale_fill_manual(values = epi_colors) +\n  theme_void() + theme(legend.position = \"none\")\n\np_right &lt;- ggplot(penguins, aes(body_mass_g, fill = species)) +\n  geom_density(alpha = 0.6) +\n  scale_fill_manual(values = epi_colors) +\n  coord_flip() +\n  theme_void() + theme(legend.position = \"none\")\n\n(p_top + plot_spacer() + p_scatter + p_right +\n    plot_layout(ncol = 2, widths = c(4, 1), heights = c(1, 4))) +\n  plot_annotation(\n    title = \"Marginal Density + Scatterplot\",\n    subtitle = \"Composed with patchwork: p_top + plot_spacer() + p_scatter + p_right\",\n    theme = theme(plot.title = element_text(face = \"bold\", size = 16),\n                  plot.subtitle = element_text(color = \"grey40\", family = \"Fira Code\",\n                                               size = 11))\n  )\n\n\n\n\nFigure 21"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#patchwork-syntax-cheat-sheet",
+    "href": "Data_Visualization_Lecture.html#patchwork-syntax-cheat-sheet",
+    "title": "Data Visualization in R",
+    "section": "Patchwork Syntax Cheat Sheet",
+    "text": "Patchwork Syntax Cheat Sheet\nThe arithmetic is intuitive:\n\np1 + p2              # side by side\np1 / p2              # stacked vertically\n(p1 | p2) / p3       # two on top, one below\np1 + p2 + p3 + plot_layout(ncol = 2)  # grid layout\np1 + plot_annotation(title = \"Combined Figure\")  # annotation"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#annotation-as-a-first-class-citizen",
+    "href": "Data_Visualization_Lecture.html#annotation-as-a-first-class-citizen",
+    "title": "Data Visualization in R",
+    "section": "8.7 Annotation as a First-Class Citizen",
+    "text": "8.7 Annotation as a First-Class Citizen\nThe fastest way to make a chart “editorial”: annotate the finding directly on the chart.\n\n\nShow the code\nlibrary(ggtext)\n\nggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +\n  geom_point(alpha = 0.7, size = 2.2) +\n  annotate(\"curve\", x = 175, y = 5500, xend = 210, yend = 5100,\n           arrow = arrow(length = unit(0.25, \"cm\")),\n           curvature = -0.3, color = \"grey30\", linewidth = 0.6) +\n  annotate(\"label\", x = 173, y = 5650,\n           label = \"Gentoos cluster in the\\nheavy / long-flipper corner\",\n           hjust = 0, size = 4.2, color = \"grey20\", lineheight = 0.95,\n           fill = \"#fff8e1\", label.size = 0, fontface = \"italic\") +\n  scale_color_manual(values = epi_colors) +\n  labs(title = \"Body mass scales with flipper length, but &lt;span style='color:#46166B;'&gt;**species matter**&lt;/span&gt;\",\n       subtitle = \"Annotated with a callout arrow and label box\",\n       x = \"Flipper length (mm)\", y = \"Body mass (g)\",\n       color = NULL) +\n  theme(plot.title = element_markdown(face = \"bold\", size = 16),\n        legend.position = \"top\")\n\n\n\n\nFigure 22"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#spatial-visualization-with-sf",
+    "href": "Data_Visualization_Lecture.html#spatial-visualization-with-sf",
+    "title": "Data Visualization in R",
+    "section": "8.8 Spatial Visualization with sf",
+    "text": "8.8 Spatial Visualization with sf\nPublic health data are almost always spatial. The sf package gives ggplot2 first-class support.\n\n\nShow the spatial code\nlibrary(sf)\nlibrary(tigris)\noptions(tigris_use_cache = TRUE)\n\nny_counties &lt;- counties(state = \"NY\", cb = TRUE, class = \"sf\")\nny_counties$fmd_prev &lt;- runif(nrow(ny_counties), 8, 18)\n\nggplot(ny_counties) +\n  geom_sf(aes(fill = fmd_prev), color = \"white\", linewidth = 0.2) +\n  scale_fill_viridis_c(option = \"rocket\", direction = -1,\n                       name = \"FMD %\") +\n  labs(title = \"Frequent Mental Distress Prevalence by NY County\",\n       subtitle = \"Hypothetical data for demonstration\",\n       caption = \"Source: U.S. Census Bureau (TIGER/Line)\") +\n  theme_void(base_size = 14) +\n  theme(plot.title = element_text(face = \"bold\"),\n        plot.subtitle = element_text(color = \"grey40\"))\n\n\n\n\nFigure 23"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#tables-as-visualizations-gt-gtextras",
+    "href": "Data_Visualization_Lecture.html#tables-as-visualizations-gt-gtextras",
+    "title": "Data Visualization in R",
+    "section": "8.9 Tables as Visualizations: gt + gtExtras",
+    "text": "8.9 Tables as Visualizations: gt + gtExtras\nSometimes the right visualization is a table. gt makes editorial-quality tables with inline plots.\n\n\nShow the gt code\nlibrary(gt)\nlibrary(gtExtras)\n\npenguins |&gt;\n  drop_na() |&gt;\n  summarise(\n    n = n(),\n    mean_mass = mean(body_mass_g),\n    sd_mass = sd(body_mass_g),\n    masses = list(body_mass_g),\n    .by = species\n  ) |&gt;\n  gt() |&gt;\n  gt_plt_dist(masses, type = \"density\", fill_color = \"#2E86AB\") |&gt;\n  fmt_number(mean_mass, decimals = 0) |&gt;\n  fmt_number(sd_mass, decimals = 0) |&gt;\n  cols_label(species = \"Species\", n = \"N\",\n             mean_mass = \"Mean (g)\", sd_mass = \"SD (g)\",\n             masses = \"Distribution\") |&gt;\n  tab_header(title = md(\"**Penguin Body Mass by Species**\"),\n             subtitle = \"Summary statistics with inline density plots\") |&gt;\n  gt_theme_538() |&gt;\n  tab_options(table.width = pct(90))\n\n\n\n\nTable 1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPenguin Body Mass by Species\n\n\nSummary statistics with inline density plots\n\n\nSpecies\nN\nMean (g)\nSD (g)\nDistribution\n\n\n\n\nAdelie\n146\n3,706\n459\n\n    \n\n\n\nGentoo\n119\n5,092\n501\n\n    \n\n\n\nChinstrap\n68\n3,733\n384"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#heatmaps-and-correlation-matrices",
+    "href": "Data_Visualization_Lecture.html#heatmaps-and-correlation-matrices",
+    "title": "Data Visualization in R",
+    "section": "8.10 Heatmaps and Correlation Matrices",
+    "text": "8.10 Heatmaps and Correlation Matrices\nHeatmaps turn a matrix of numbers into a pattern you can see. Essential for correlation tables, confusion matrices, and time-by-group summaries.\n\n\nShow the code\n# Correlation matrix of numeric penguin variables\ncor_data &lt;- penguins |&gt;\n  drop_na() |&gt;\n  select(where(is.numeric)) |&gt;\n  cor() |&gt;\n  as.data.frame() |&gt;\n  rownames_to_column(\"var1\") |&gt;\n  pivot_longer(-var1, names_to = \"var2\", values_to = \"cor\")\n\nggplot(cor_data, aes(x = var1, y = var2, fill = cor)) +\n  geom_tile(color = \"white\", linewidth = 0.8) +\n  geom_text(aes(label = round(cor, 2),\n                color = abs(cor) &gt; 0.6),\n            size = 4.5, fontface = \"bold\") +\n  scale_fill_gradient2(low = \"#D55E00\", mid = \"white\", high = \"#0072B2\",\n                       midpoint = 0, limits = c(-1, 1),\n                       name = \"Correlation\") +\n  scale_color_manual(values = c(\"TRUE\" = \"white\", \"FALSE\" = \"grey20\"),\n                     guide = \"none\") +\n  scale_x_discrete(labels = \\(x) str_replace_all(x, \"_\", \"\\n\")) +\n  scale_y_discrete(labels = \\(x) str_replace_all(x, \"_\", \"\\n\")) +\n  labs(title = \"Correlation Heatmap of Penguin Measurements\",\n       subtitle = \"Color intensity encodes strength; text encodes exact value\",\n       x = NULL, y = NULL) +\n  coord_fixed() +\n  theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10),\n        axis.text.y = element_text(size = 10),\n        panel.grid = element_blank())\n\n\n\n\nFigure 24"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#dumbbell-charts-showing-change",
+    "href": "Data_Visualization_Lecture.html#dumbbell-charts-showing-change",
+    "title": "Data Visualization in R",
+    "section": "8.11 Dumbbell Charts: Showing Change",
+    "text": "8.11 Dumbbell Charts: Showing Change\nWhen you need to show the difference between two time points or conditions, dumbbell charts are more effective than grouped bars.\n\n\nShow the code\n# Simulated epi example: disease rates before/after intervention\nintervention_data &lt;- tibble(\n  county = c(\"Albany\", \"Saratoga\", \"Rensselaer\", \"Schenectady\",\n             \"Columbia\", \"Greene\", \"Warren\", \"Washington\"),\n  before = c(15.2, 12.8, 18.1, 16.5, 11.3, 14.7, 9.8, 13.2),\n  after  = c(11.1, 10.2, 12.4, 13.8, 9.5, 11.0, 8.1, 10.9)\n) |&gt;\n  mutate(change = after - before,\n         county = fct_reorder(county, change))\n\nggplot(intervention_data) +\n  geom_segment(aes(x = before, xend = after,\n                   y = county, yend = county),\n               color = \"grey60\", linewidth = 1.2) +\n  geom_point(aes(x = before, y = county), color = \"#D55E00\",\n             size = 4) +\n  geom_point(aes(x = after, y = county), color = \"#0072B2\",\n             size = 4) +\n  annotate(\"text\", x = 19, y = 8.3, label = \"Before\",\n           color = \"#D55E00\", fontface = \"bold\", size = 4.5) +\n  annotate(\"text\", x = 19, y = 7.7, label = \"After\",\n           color = \"#0072B2\", fontface = \"bold\", size = 4.5) +\n  labs(title = \"Every County Improved After the Intervention\",\n       subtitle = \"Rate per 1,000 population, before vs. after community health program\",\n       x = \"Rate per 1,000\", y = NULL) +\n  scale_x_continuous(limits = c(7, 20))\n\n\n\n\nFigure 25\n\nDumbbell charts encode direction, magnitude, and rank simultaneously. Far more effective than grouped bar charts for before/after comparisons."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#build-your-own-reusable-theme",
+    "href": "Data_Visualization_Lecture.html#build-your-own-reusable-theme",
+    "title": "Data Visualization in R",
+    "section": "8.12 Build Your Own Reusable Theme",
+    "text": "8.12 Build Your Own Reusable Theme\nPackage your style as a function. Reuse it across every chart.\n\ntheme_epi553 &lt;- function(base_size = 14) {\n  theme_minimal(base_size = base_size) +\n    theme(\n      plot.title = element_text(face = \"bold\", size = base_size + 4,\n                                color = \"#1a1a2e\"),\n      plot.subtitle = element_text(color = \"grey40\"),\n      plot.caption = element_text(color = \"grey60\", size = base_size - 3,\n                                  hjust = 0),\n      panel.grid.minor = element_blank(),\n      panel.grid.major = element_line(color = \"grey92\"),\n      axis.title = element_text(color = \"grey30\"),\n      strip.text = element_text(face = \"bold\"),\n      legend.position = \"top\",\n      plot.title.position = \"plot\",\n      plot.caption.position = \"plot\"\n    )\n}\n\n\nPractical tip: drop theme_epi553() into a themes.R file. Source it from every analysis. Consistent figures without effort."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-modern-workflow",
+    "href": "Data_Visualization_Lecture.html#the-modern-workflow",
+    "title": "Data Visualization in R",
+    "section": "8.13 The Modern Workflow",
+    "text": "8.13 The Modern Workflow\n\nSketch first. On paper. What is the story?\nPrototype in ggplot2 with default themes. Get the geometry right.\nIterate the encoding. Try three chart types. Pick one.\nLayer in annotations. Title is the finding. Direct labels. Callouts.\nPolish the theme. Fonts, colors, spacing.\nExport at the right resolution.\n\n\n\nggsave(\"figure_1.png\", width = 8, height = 5, dpi = 300, bg = \"white\")\nggsave(\"figure_1.svg\", width = 8, height = 5)        # vector for editorial\nggsave(\"figure_1.pdf\", width = 8, height = 5,\n       device = cairo_pdf)                             # high-quality PDF\n\n\n\nStep 7: Show it to a colleague. If they cannot explain the chart in 10 seconds, iterate."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#visualizing-regression-models",
+    "href": "Data_Visualization_Lecture.html#visualizing-regression-models",
+    "title": "Data Visualization in R",
+    "section": "Visualizing Regression Models",
+    "text": "Visualizing Regression Models\nYou have spent the semester building models. Now make them visible."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-problem-with-regression-tables",
+    "href": "Data_Visualization_Lecture.html#the-problem-with-regression-tables",
+    "title": "Data Visualization in R",
+    "section": "The Problem with Regression Tables",
+    "text": "The Problem with Regression Tables\n\n\nWhat reviewers see\nA wall of numbers:\n\n\n\nTerm\nEstimate\nSE\np\n\n\n\n\n(Intercept)\n-1.23\n0.41\n0.003\n\n\nSmoking\n0.65\n0.10\n&lt;0.001\n\n\nExercise\n-0.45\n0.08\n&lt;0.001\n\n\nIncome\n-0.20\n0.07\n0.004\n\n\nSleep\n-0.30\n0.09\n0.001\n\n\nAge\n0.05\n0.04\n0.211\n\n\n\n\nWhat readers understand\n\n\n\n\n\n\n\n\nFigure 26\n\n\n\n\n\n\n\nA coefficient plot communicates direction, magnitude, uncertainty, and significance in one glance. A table requires row-by-row mental math."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#forest-plots-from-real-models",
+    "href": "Data_Visualization_Lecture.html#forest-plots-from-real-models",
+    "title": "Data Visualization in R",
+    "section": "Forest Plots from Real Models",
+    "text": "Forest Plots from Real Models\nFit a logistic regression on the penguins data and plot the odds ratios directly.\n\n\nShow the full code\nlibrary(broom)\n\n# Fit a logistic regression: predict heavy penguin (above median mass)\nmodel_data &lt;- penguins |&gt;\n  drop_na() |&gt;\n  mutate(heavy = as.integer(body_mass_g &gt; median(body_mass_g)))\n\nfit &lt;- glm(heavy ~ bill_length_mm + bill_depth_mm + flipper_length_mm +\n             species + sex,\n           data = model_data, family = binomial)\n\n# Tidy the model output (use Wald CIs for stability)\nmodel_tidy &lt;- tidy(fit, exponentiate = TRUE) |&gt;\n  filter(term != \"(Intercept)\") |&gt;\n  mutate(\n    conf.low = exp(log(estimate) - 1.96 * std.error),\n    conf.high = exp(log(estimate) + 1.96 * std.error),\n    term = case_match(term,\n      \"bill_length_mm\" ~ \"Bill length (mm)\",\n      \"bill_depth_mm\" ~ \"Bill depth (mm)\",\n      \"flipper_length_mm\" ~ \"Flipper length (mm)\",\n      \"speciesChinstrap\" ~ \"Chinstrap vs. Adelie\",\n      \"speciesGentoo\" ~ \"Gentoo vs. Adelie\",\n      \"sexmale\" ~ \"Sex (male vs. female)\"\n    ),\n    significant = p.value &lt; 0.05\n  )\n\nggplot(model_tidy, aes(x = estimate, y = fct_reorder(term, estimate),\n                       color = significant)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = conf.low, xmax = conf.high),\n                  size = 0.8, linewidth = 1.1) +\n  geom_text(aes(label = sprintf(\"OR = %.2f\", estimate)),\n            vjust = -1, size = 3.8, show.legend = FALSE) +\n  scale_color_manual(values = c(\"TRUE\" = \"#e64173\", \"FALSE\" = \"grey60\"),\n                     guide = \"none\") +\n  scale_x_log10() +\n  labs(title = \"Predictors of Above-Median Body Mass (Logistic Regression)\",\n       subtitle = \"Odds ratios with 95% CI on log scale; red = p &lt; 0.05\",\n       x = \"Odds Ratio (log scale)\", y = NULL,\n       caption = \"Model: glm(heavy ~ bill + flipper + species + sex, family = binomial)\")\n\n\n\n\nFigure 27"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#predicted-probability-curves",
+    "href": "Data_Visualization_Lecture.html#predicted-probability-curves",
+    "title": "Data Visualization in R",
+    "section": "Predicted Probability Curves",
+    "text": "Predicted Probability Curves\nShow what your model predicts across the range of a key variable, holding others at their means.\n\n\nShow the code\nlibrary(broom)\n\n# Generate predictions across flipper length range\npred_grid &lt;- tibble(\n  flipper_length_mm = seq(170, 235, length.out = 200),\n  bill_length_mm = mean(model_data$bill_length_mm),\n  bill_depth_mm = mean(model_data$bill_depth_mm),\n  species = \"Adelie\",\n  sex = \"female\"\n)\n\npreds &lt;- augment(fit, newdata = pred_grid, type.predict = \"response\",\n                 se_fit = TRUE) |&gt;\n  mutate(lower = pmax(.fitted - 1.96 * .se.fit, 0),\n         upper = pmin(.fitted + 1.96 * .se.fit, 1))\n\nggplot(preds, aes(x = flipper_length_mm, y = .fitted)) +\n  geom_ribbon(aes(ymin = lower, ymax = upper),\n              fill = \"#2E86AB\", alpha = 0.2) +\n  geom_line(color = \"#2E86AB\", linewidth = 1.3) +\n  geom_rug(data = model_data,\n           aes(x = flipper_length_mm, y = heavy),\n           sides = \"tb\", alpha = 0.15, color = \"grey40\") +\n  scale_y_continuous(labels = label_percent()) +\n  labs(title = \"Predicted Probability of Above-Median Mass by Flipper Length\",\n       subtitle = \"Logistic regression (Adelie, female); rug marks show observed data\",\n       x = \"Flipper length (mm)\", y = \"Predicted probability\",\n       caption = \"Shaded band = approximate 95% confidence interval\")\n\n\n\n\nFigure 28\n\nPredicted probability curves are one of the most effective ways to communicate logistic regression results to non-statisticians."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#marginal-effects-with-ggeffects",
+    "href": "Data_Visualization_Lecture.html#marginal-effects-with-ggeffects",
+    "title": "Data Visualization in R",
+    "section": "Marginal Effects with ggeffects",
+    "text": "Marginal Effects with ggeffects\nThe ggeffects package automates predicted value plots for any model class.\n\n\n\nlibrary(ggeffects)\n\n# One line to get predicted values\npreds &lt;- ggpredict(fit,\n  terms = c(\"flipper_length_mm\",\n            \"sex\"))\n\n# Built-in plot method\nplot(preds) +\n  labs(\n    title = \"Marginal Effect of Flipper Length by Sex\"\n  )\n\n# Or extract data for custom ggplot\nas.data.frame(preds) |&gt;\n  ggplot(aes(x, predicted,\n             color = group)) +\n  geom_ribbon(...) +\n  geom_line(...)\n\n\n\n\n\n\n\n\n\n\nFigure 29"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#diagnostic-plots-the-performance-see-packages",
+    "href": "Data_Visualization_Lecture.html#diagnostic-plots-the-performance-see-packages",
+    "title": "Data Visualization in R",
+    "section": "Diagnostic Plots: the performance + see Packages",
+    "text": "Diagnostic Plots: the performance + see Packages\nThe performance package (from easystats) provides model diagnostics; see visualizes them with ggplot2.\n\n\nShow the code\n# Fit a linear model for diagnostics demo\nlm_fit &lt;- lm(body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm + species,\n             data = drop_na(penguins))\n\nlibrary(performance)\nlibrary(see)\n\ncheck_model(lm_fit, check = c(\"linearity\", \"normality\", \"qq\", \"homogeneity\"))\n\n\n\n\nFigure 30\n\ncheck_model() replaces the base R plot(model) with a modern, multi-panel diagnostic dashboard. One function call, publication-ready output."
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#model-comparison-visualization",
+    "href": "Data_Visualization_Lecture.html#model-comparison-visualization",
+    "title": "Data Visualization in R",
+    "section": "Model Comparison Visualization",
+    "text": "Model Comparison Visualization\nWhen comparing nested or competing models, visualize the fit statistics side by side.\n\n\nShow the code\n# Fit competing models\nm1 &lt;- glm(heavy ~ flipper_length_mm, data = model_data, family = binomial)\nm2 &lt;- glm(heavy ~ flipper_length_mm + species, data = model_data, family = binomial)\nm3 &lt;- glm(heavy ~ flipper_length_mm + species + sex, data = model_data, family = binomial)\nm4 &lt;- fit  # full model from earlier\n\n# Helper to get Wald CIs\ntidy_wald &lt;- function(mod, label) {\n  tidy(mod, exponentiate = TRUE) |&gt;\n    mutate(conf.low = exp(log(estimate) - 1.96 * std.error),\n           conf.high = exp(log(estimate) + 1.96 * std.error),\n           model = label)\n}\n\n# Compare coefficients across models\nmodels_tidy &lt;- bind_rows(\n  tidy_wald(m1, \"Model 1:\\nFlipper only\"),\n  tidy_wald(m2, \"Model 2:\\n+ Species\"),\n  tidy_wald(m3, \"Model 3:\\n+ Sex\"),\n  tidy_wald(m4, \"Model 4:\\n+ Bill measures\")\n) |&gt;\n  filter(term == \"flipper_length_mm\")\n\nggplot(models_tidy, aes(x = estimate, y = model)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", color = \"grey50\") +\n  geom_pointrange(aes(xmin = conf.low, xmax = conf.high),\n                  color = \"#2E86AB\", size = 1, linewidth = 1.1) +\n  geom_text(aes(label = sprintf(\"OR = %.2f (%.2f, %.2f)\",\n                                estimate, conf.low, conf.high)),\n            vjust = -1.2, size = 3.8, color = \"grey30\") +\n  scale_x_log10() +\n  labs(title = \"How Stable Is the Flipper Length Effect Across Models?\",\n       subtitle = \"Odds ratio for flipper_length_mm as covariates are added\",\n       x = \"Odds Ratio (log scale)\", y = NULL,\n       caption = \"Stable estimates across nested models suggest robust association\")\n\n\n\n\nFigure 31"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#the-30daychartchallenge",
+    "href": "Data_Visualization_Lecture.html#the-30daychartchallenge",
+    "title": "Data Visualization in R",
+    "section": "The #30DayChartChallenge",
+    "text": "The #30DayChartChallenge\nEvery April, the data visualization community participates in the #30DayChartChallenge: one prompt per day, one chart per day, shared on social media. Created in 2021 by Cedric Scherer and Dominic Roye, inspired by the #30DayMapChallenge.\n\n\nWhy It Matters for You\n\nForces you to try chart types you would never pick (waffle charts, bump charts, slope graphs, treemaps)\nBuilds a public portfolio of your work\nExposes you to how the global community solves the same prompt differently\nMany prompts are epi-relevant: uncertainty, distributions, time series, part-to-whole, relationships\n\nFive Categories (based on “The Graphic Continuum”)\n\nComparisons (days 1-6)\nDistributions (days 7-12)\nRelationships (days 13-18)\nTime series (days 19-24)\nUncertainties (days 25-30)\n\n\nParticipants choose their own data and tools freely. The 2026 edition is at github.com/30DayChartChallenge/Edition2026.\n\n\nTechniques You Can Steal\n\n\n\nPrompt\nChart Type\nR Package\n\n\n\n\nPart-to-whole\nWaffle chart\nwaffle\n\n\nRanking\nBump chart\nggbump\n\n\nSlope\nSlope chart\ngeom_segment\n\n\nCircular\nPolar bar\ncoord_polar()\n\n\nUncertainty\nGradient intervals\nggdist\n\n\nRelationships\nNetwork\nggraph + tidygraph\n\n\nNeo-geometric\nVoronoi\nggforce\n\n\nStorytelling\nAnnotated timeline\nggtext + annotate\n\n\n\nWhere to Explore\n\ngithub.com/30DayChartChallenge – all editions since 2021\nSearch #30DayChartChallenge on Twitter/X or Mastodon\nCedric Scherer’s contributions – R code for every entry\nR Graph Gallery – reproducible R code for all chart types"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#bonus-waffle-chart",
+    "href": "Data_Visualization_Lecture.html#bonus-waffle-chart",
+    "title": "Data Visualization in R",
+    "section": "Bonus: Waffle Chart",
+    "text": "Bonus: Waffle Chart\nA waffle chart is a part-to-whole alternative to pie charts, popularized by the #30DayChartChallenge. Each square = 1 unit.\n\n\nShow the waffle code\nlibrary(waffle)\n\npenguin_counts &lt;- penguins |&gt;\n  drop_na() |&gt;\n  count(species) |&gt;\n  mutate(n_scaled = round(n / 5))  # each square = 5 penguins\n\nwaffle(\n  c(\"Adelie\" = penguin_counts$n_scaled[1],\n    \"Chinstrap\" = penguin_counts$n_scaled[2],\n    \"Gentoo\" = penguin_counts$n_scaled[3]),\n  rows = 5,\n  size = 1,\n  colors = c(\"#FF6B35\", \"#A23B72\", \"#2E86AB\"),\n  title = \"Palmer Penguins by Species\",\n  xlab = \"1 square = 5 penguins\"\n) +\n  theme(plot.title = element_text(face = \"bold\", size = 16),\n        legend.position = \"bottom\")\n\n\n\n\nFigure 32\n\nChallenge for you: pick a prompt from the #30DayChartChallenge and create a chart using a dataset from this semester. Share it!"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#lecture-summary",
+    "href": "Data_Visualization_Lecture.html#lecture-summary",
+    "title": "Data Visualization in R",
+    "section": "Lecture Summary",
+    "text": "Lecture Summary\n\n\n\nBuild plots in layers\nShow raw data whenever possible\nUse uncertainty displays, not just point estimates\nPrefer position over area for comparison\nMake titles state the conclusion\n\n\n\nUse colorblind-safe palettes by default\nDirect-label when the audience benefits\nRemove nonessential visual clutter\nVisualize models, do not just tabulate them\nIterate until the story is obvious"
+  },
+  {
+    "objectID": "Data_Visualization_Lecture.html#references",
+    "href": "Data_Visualization_Lecture.html#references",
+    "title": "Data Visualization in R",
+    "section": "References",
+    "text": "References\n\n\nBooks\n\nHealy, K. (2018). Data Visualization: A Practical Introduction. socviz.co\nWilke, C. O. (2019). Fundamentals of Data Visualization. clauswilke.com/dataviz\nWickham, H. (2016). ggplot2: Elegant Graphics for Data Analysis. ggplot2-book.org\n\nFoundational\n\nTufte, E. (2001). The Visual Display of Quantitative Information (2nd ed.)\nCleveland, W. S., & McGill, R. (1984). Graphical perception. JASA, 79(387), 531-554.\n\n\nOnline Resources\n\nHoltz, Y. R Graph Gallery\nHoltz, Y. & Healy, C. From Data to Viz\nScherer, C. Portfolio\n\nNext Lecture (April 28)\nCourse Review: putting the entire semester together."
+  }
+]
