@@ -737,8 +737,6 @@ p3 + p4 +
 
 ## Explore These Online {.smaller}
 
-Keep this list short during lecture; share the longer reading list on Brightspace or in your notes.
-
 :::: {.columns}
 
 ::: {.column width="50%"}
