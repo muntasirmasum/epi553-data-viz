@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - Data_Visualization_Lecture.qmd
 
 website:
   title: "EPI 553 — Data Visualization"

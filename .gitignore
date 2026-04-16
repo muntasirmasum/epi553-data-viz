@@ -6,3 +6,5 @@
 .Rproj.user
 rsconnect/
 Data_Visualization_Lecture.html
+
+**/*.quarto_ipynb
