@@ -1,0 +1,1972 @@
+---
+title: "Data Visualization in R"
+subtitle: "EPI 553 | Principles of Statistical Inference II"
+author: "Muntasir Masum, PhD"
+date: "April 21 & 24, 2026"
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    transition: fade
+    transition-speed: fast
+    slide-number: c/t
+    chalkboard: true
+    preview-links: auto
+    code-line-numbers: false
+    code-fold: false
+    code-overflow: wrap
+    highlight-style: a11y-light
+    height: 900
+    width: 1600
+    fig-align: center
+    fig-format: svg
+    footer: "EPI 553 | Data Visualization | University at Albany"
+    logo: img/ualbany-logo.png
+    title-slide-attributes:
+      data-background-color: "#0e1c36"
+      data-background-image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=80"
+      data-background-opacity: "0.15"
+    navigation-mode: linear
+    controls: true
+    mouse-wheel: false
+    pointer:
+      pointerSize: 18
+      color: "#e64173"
+execute:
+  echo: true
+  warning: false
+  message: false
+  fig-width: 12
+  fig-height: 6.5
+  fig-dpi: 150
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(palmerpenguins)
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(scales)
+
+# Consistent EPI 553 theme
+theme_epi553 <- function(base_size = 14) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", size = base_size + 4,
+                                color = "#1a1a2e", margin = margin(b = 4)),
+      plot.subtitle = element_text(color = "grey40", size = base_size,
+                                   margin = margin(b = 12)),
+      plot.caption = element_text(color = "grey60", size = base_size - 3,
+                                  hjust = 0, margin = margin(t = 12)),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "grey92"),
+      axis.title = element_text(color = "grey30"),
+      axis.text = element_text(color = "grey30"),
+      strip.text = element_text(face = "bold", color = "grey20"),
+      legend.position = "top",
+      legend.title = element_text(face = "bold", size = base_size - 1),
+      plot.title.position = "plot",
+      plot.caption.position = "plot"
+    )
+}
+
+# Set as default
+theme_set(theme_epi553())
+
+# Palette
+epi_colors <- c("Adelie" = "#FF6B35", "Chinstrap" = "#A23B72", "Gentoo" = "#2E86AB")
+
+set.seed(1220)
+```
+
+
+## Roadmap {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Foundations
+
+1. Why visualization is a methods topic
+2. The grammar of graphics
+3. Healy's principles: honesty, clarity, comparison
+4. Holtz's chart-type decision tree
+5. Scherer's editorial approach
+6. A worked transformation: same data, four iterations
+
+:::
+
+::: {.column width="50%"}
+
+### Modern Techniques
+
+7. Color, type, and accessibility
+8. gghighlight, animation, interactivity
+9. Distributions, uncertainty, heatmaps
+10. Patchwork, annotation, spatial viz
+11. **Visualizing regression models**
+12. The #30DayChartChallenge
+13. Building your own reusable theme
+
+:::
+
+::::
+
+
+# Part 1 {background-color="#46166B" .section-slide}
+
+## Why Visualization Is a Methods Topic
+
+Statistics gives us numbers. Visualization makes them mean something.
+
+
+## Three Reasons
+
+::: {.incremental}
+
+1. **Visualization is part of the analysis, not decoration.**
+   A scatterplot reveals a non-linear relationship that a correlation coefficient hides. A residual plot exposes a violated assumption that an R-squared celebrates.
+
+2. **Visualization is how findings reach decision-makers.**
+   A clinician, journalist, or policymaker will not read your beta coefficients. They *will* look at your figure. The figure is the one part of the paper that everyone reads.
+
+3. **Visualization is a discipline with its own theory.**
+   Bad charts are not just ugly, they are *wrong*. They make comparisons hard, hide variation, and encode noise as signal.
+
+:::
+
+::: {.fragment}
+> *"Above all else, show the data."* -- Edward Tufte
+:::
+
+
+## The Same Data, Completely Different Stories
+
+```{r}
+#| label: fig-anscombe
+#| fig-cap: "Anscombe's Quartet: four datasets with identical summary statistics but radically different patterns."
+#| echo: false
+#| fig-height: 5
+
+anscombe_long <- anscombe |>
+  pivot_longer(everything(),
+               names_to = c(".value", "set"),
+               names_pattern = "(.)(.)")
+
+ggplot(anscombe_long, aes(x, y)) +
+  geom_point(size = 3, color = "#2E86AB", alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "#e64173", linewidth = 1) +
+  facet_wrap(~set, ncol = 4, scales = "free") +
+  labs(title = "Anscombe's Quartet",
+       subtitle = "Same mean, same variance, same correlation, same regression line. Very different data.") +
+  theme_epi553(base_size = 13)
+```
+
+::: {.muted}
+Every analysis you do should **begin and end** with looking at the data.
+:::
+
+
+# Part 2 {background-color="#46166B" .section-slide}
+
+## The Grammar of Graphics
+
+Leland Wilkinson (1999) described a unified framework. Hadley Wickham translated it into ggplot2 (2005).
+
+
+## The Seven Layers {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Core structure
+
+1. **Data**
+   - What data am I plotting?
+   - `ggplot(data = ...)`
+2. **Aesthetics**
+   - Which variables map to x, y, color, size?
+   - `aes(x, y, color, size)`
+3. **Geometries**
+   - What shape do I draw?
+   - `geom_point()`, `geom_line()`, `geom_col()`
+4. **Facets**
+   - Do I split into small multiples?
+   - `facet_wrap()` / `facet_grid()`
+
+:::
+
+::: {.column width="50%"}
+
+### Refinement layers
+
+5. **Statistics**
+   - Do I summarize or transform?
+   - `stat_*()` / `geom_smooth()`
+6. **Coordinates and scales**
+   - How are axes and scales defined?
+   - `coord_*()` / `scale_*()`
+7. **Theme**
+   - How does it look?
+   - `theme_*()` / `theme()`
+
+::: {.highlight-box}
+Think of these as a checklist: data, mapping, marks, splits, summaries, scales, polish.
+:::
+
+:::
+
+::::
+
+::: {.fragment .highlight-box}
+The genius is **composability**: to go from a scatterplot to a faceted scatterplot with a smoother, you *add* layers; you do not start over.
+:::
+
+
+## Building a Plot Layer by Layer
+
+```{r}
+#| label: fig-grammar-demo
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5.5
+
+ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point(alpha = 0.7, size = 2.5) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1) +
+  facet_wrap(~ island) +
+  scale_color_manual(values = epi_colors) +
+  labs(title = "Bill Dimensions of Palmer Penguins",
+       subtitle = "By species and island, with linear trend lines",
+       x = "Bill length (mm)", y = "Bill depth (mm)",
+       color = "Species")
+```
+
+
+## The ggplot2 Template
+
+Every ggplot follows the same skeleton:
+
+```{r}
+#| eval: false
+#| code-line-numbers: "1|2|3|4|5|6|7"
+
+ggplot(data = <DATA>,                       # 1. Data
+       aes(x = <X>, y = <Y>, color = <Z>)) # 2. Aesthetics
+  + geom_<TYPE>(...)                        # 3. Geometry
+  + facet_wrap(~ <VAR>)                     # 4. Facets
+  + scale_<AES>_<TYPE>(...)                 # 5. Scales
+  + labs(title = "...", x = "...", y = "...") # 6. Labels
+  + theme_minimal()                         # 7. Theme
+```
+
+::: {.fragment .finding-box}
+You will use this template for every chart in this course and beyond.
+:::
+
+
+# Part 3 {background-color="#46166B" .section-slide}
+
+## Kieran Healy's Principles
+
+Is the chart **substantively** good? **Perceptually** good? **Aesthetically** good?
+
+
+## Substantive Standards {.smaller}
+
+:::: {.columns}
+
+::: {.column width="40%"}
+
+### The Rules
+
+::: {.incremental}
+- **Show the data.** Individual observations, not just summaries
+- **Compare like with like.** Stratify intentionally
+- **Quantify uncertainty.** Always show CIs or standard errors
+:::
+
+:::
+
+::: {.column width="60%"}
+
+```{r}
+#| label: fig-healy-substantive
+#| echo: false
+#| fig-height: 6
+
+penguins |>
+  drop_na(sex) |>
+  ggplot(aes(x = species, y = body_mass_g, color = sex)) +
+  geom_jitter(width = 0.15, alpha = 0.35, size = 1.5) +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange",
+               position = position_dodge(width = 0.5),
+               size = 0.8, linewidth = 1) +
+  scale_color_manual(values = c("female" = "#D55E00", "male" = "#0072B2")) +
+  labs(title = "Body Mass by Species and Sex",
+       subtitle = "Individual observations with mean and 95% CI",
+       x = NULL, y = "Body mass (g)", color = "Sex")
+```
+
+:::
+
+::::
+
+
+## Perceptual Standards
+
+Cleveland & McGill (1984) ranked visual encodings by accuracy:
+
+```{r}
+#| label: fig-perception
+#| echo: false
+#| fig-height: 5
+
+perception <- tibble::tibble(
+  encoding = c("Position (common scale)", "Position (non-aligned)",
+               "Length", "Angle / slope", "Area",
+               "Volume", "Color hue", "Color saturation"),
+  accuracy = c(95, 82, 70, 55, 42, 30, 25, 18),
+  rank = 1:8
+)
+
+ggplot(perception, aes(x = accuracy,
+                       y = fct_reorder(encoding, accuracy))) +
+  geom_col(fill = "#2E86AB", alpha = 0.85, width = 0.7) +
+  geom_text(aes(label = paste0("#", rank)), hjust = -0.3, fontface = "bold",
+            color = "#46166B", size = 5) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15)),
+                     labels = label_number(suffix = "%")) +
+  labs(title = "Cleveland-McGill Hierarchy of Visual Encodings",
+       subtitle = "Higher = more accurately perceived by readers",
+       x = "Perceptual accuracy (approximate)", y = NULL)
+```
+
+
+## Practical Implication {.smaller}
+
+::: {.highlight-box}
+Prefer **dot plots** and **bar charts** to pie charts. Prefer **faceting** to stacking. Use color for categories, not for quantities (unless you use a perceptually uniform scale like viridis).
+:::
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Weak encoding (angle)
+```{r}
+#| echo: false
+#| fig-height: 4.5
+
+dat <- tibble(group = LETTERS[1:6],
+              value = c(22, 18, 17, 16, 14, 13))
+
+ggplot(dat, aes(x = "", y = value, fill = group)) +
+  geom_col(width = 1) +
+  coord_polar("y") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Pie chart: which is third largest?") +
+  theme_void(base_size = 14) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+:::
+
+::: {.column width="50%"}
+
+### Strong encoding (position)
+```{r}
+#| echo: false
+#| fig-height: 4.5
+
+ggplot(dat, aes(x = value, y = fct_reorder(group, value))) +
+  geom_col(fill = "#2E86AB", width = 0.7) +
+  geom_text(aes(label = value), hjust = -0.3, fontface = "bold", size = 5) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "Bar chart: instantly clear", x = NULL, y = NULL)
+```
+
+:::
+
+::::
+
+
+## Aesthetic Standards
+
+Healy's third pillar is what beginners notice last but readers notice first:
+
+::: {.incremental}
+- **Typography**: one font family, bold title, grey subtitle, tiny caption
+- **White space**: let the chart breathe
+- **Alignment**: consistent margins and axes
+- **Color harmony**: restrained, purposeful palettes
+- **Direct labeling**: labels next to the data, not in a legend
+:::
+
+::: {.fragment .finding-box}
+A clean theme, restrained gridlines, and direct labeling will make a competent chart feel **professional**.
+:::
+
+
+# Part 4 {background-color="#46166B" .section-slide}
+
+## Choosing the Right Chart Type
+
+Yan Holtz's *From Data to Viz* decision tree
+
+
+## Chart Type Decision Guide {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Start with the data structure
+
+- **One numeric**
+  Histogram, density, boxplot, violin
+- **One categorical**
+  Bar chart, lollipop, treemap
+- **Two numeric**
+  Scatterplot, hexbin, 2D density
+- **Numeric x categorical**
+  Boxplot, violin, ridge, jitter + summary
+
+:::
+
+::: {.column width="50%"}
+
+### Then ask what to avoid
+
+- **Two categorical**
+  Heatmap or mosaic before grouped bars
+- **Time series**
+  Prefer line, area, slope; avoid bars by default
+- **Map data**
+  Normalize before choropleths
+- **Network**
+  Avoid force-directed hairballs with large node counts
+
+::: {.highlight-box}
+If the audience's main task is comparison, choose a chart that encodes values by position.
+:::
+
+:::
+
+::::
+
+::: {.fragment .highlight-box}
+Bookmark these: [data-to-viz.com](https://www.data-to-viz.com) | [r-graph-gallery.com](https://r-graph-gallery.com)
+:::
+
+
+## The Anti-Pie-Chart Argument
+
+```{r}
+#| label: fig-pie-vs-bar
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+dat <- tibble(group = LETTERS[1:6],
+              value = c(22, 18, 17, 16, 14, 13))
+
+p1 <- ggplot(dat, aes(x = "", y = value, fill = group)) +
+  geom_col(width = 1) +
+  coord_polar("y") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Pie chart") +
+  theme_void(base_size = 14) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+p2 <- ggplot(dat, aes(x = value, y = fct_reorder(group, value))) +
+  geom_col(fill = "steelblue", width = 0.7) +
+  geom_text(aes(label = value), hjust = -0.3, fontface = "bold") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "Sorted bar chart", x = NULL, y = NULL) +
+  theme_epi553()
+
+p1 + p2 +
+  plot_annotation(title = "Pie charts encode angles. Bar charts encode position.",
+                  subtitle = "Which one lets you instantly rank the groups?",
+                  theme = theme(plot.title = element_text(face = "bold", size = 16),
+                                plot.subtitle = element_text(color = "grey40")))
+```
+
+
+# Part 5 {background-color="#46166B" .section-slide}
+
+## The Editorial Style
+
+Cedric Scherer's approach: from default to publication
+
+
+## The Scherer Approach {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.incremental}
+1. **Start with the data**, not the chart type
+2. **Strip ruthlessly**: remove gridlines, grey backgrounds, redundant titles
+3. **Direct label**: put labels next to the lines, not in a legend
+4. **Use type as design**: bold title, italic subtitle, grey caption
+5. **Annotate**: callouts, arrows, shaded regions
+6. **Iterate**: 20+ versions is normal
+:::
+
+:::
+
+::: {.column width="50%"}
+
+### The Tools
+
+| Package | Purpose |
+|---------|---------|
+| `ggtext` | Markdown in titles |
+| `patchwork` | Multi-panel figures |
+| `ggrepel` | Non-overlapping labels |
+| `showtext` | Custom Google Fonts |
+| `MetBrewer` | Art-inspired palettes |
+| `ggdist` | Uncertainty + distributions |
+
+:::
+
+::::
+
+
+## Editorial Example: Direct Labels Replace Legends
+
+```{r}
+#| label: fig-scherer-style
+#| code-fold: true
+#| code-summary: "Show the ggplot2 code"
+#| fig-height: 5.5
+
+library(ggrepel)
+
+penguin_means <- penguins |>
+  drop_na() |>
+  summarise(mass = mean(body_mass_g), .by = c(species, year))
+
+ggplot(penguin_means, aes(x = year, y = mass, color = species)) +
+  geom_line(linewidth = 1.4) +
+  geom_point(size = 3.5) +
+  geom_text_repel(
+    data = filter(penguin_means, year == max(year)),
+    aes(label = species),
+    hjust = 0, nudge_x = 0.15, direction = "y",
+    segment.color = NA, fontface = "bold", size = 5
+  ) +
+  scale_color_manual(values = epi_colors) +
+  scale_x_continuous(breaks = 2007:2009,
+                     expand = expansion(mult = c(0.05, 0.25))) +
+  labs(title = "Average Body Mass of Palmer Penguins, 2007-2009",
+       subtitle = "Direct labels replace the legend; gridlines are softened",
+       x = NULL, y = "Body mass (g)",
+       caption = "Source: palmerpenguins R package") +
+  theme(legend.position = "none",
+        panel.grid.major.x = element_blank())
+```
+
+
+# Part 6 {background-color="#46166B" .section-slide}
+
+## A Worked Transformation
+
+Same data. Four versions. Watch the evolution.
+
+
+## Iteration 1: The Default
+
+```{r}
+#| label: fig-iter1
+#| fig-height: 5
+
+ggplot(penguins, aes(x = species, y = body_mass_g)) +
+  geom_boxplot() +
+  theme_grey(base_size = 14)
+```
+
+::: {.muted}
+Honest. Also forgettable.
+:::
+
+
+## Iteration 2: Show the Data
+
+```{r}
+#| label: fig-iter2
+#| fig-height: 5
+
+ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.4, size = 1.5) +
+  scale_fill_manual(values = epi_colors) +
+  theme_epi553() +
+  theme(legend.position = "none")
+```
+
+::: {.fragment .highlight-box}
+Now we see how many penguins are in each species and where the outliers actually live.
+:::
+
+
+## Iteration 3: Labels and Theme
+
+```{r}
+#| label: fig-iter3
+#| fig-height: 5
+
+ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA, color = "grey20") +
+  geom_jitter(width = 0.2, alpha = 0.4, color = "grey30", size = 1.5) +
+  scale_fill_manual(values = epi_colors) +
+  labs(title = "Body Mass of Palmer Penguins by Species",
+       subtitle = "Boxplots with individual observations overlaid",
+       x = NULL, y = "Body mass (g)") +
+  theme(legend.position = "none")
+```
+
+
+## Iteration 4: Editorial Polish {.smaller}
+
+```{r}
+#| label: fig-iter4
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5.5
+
+library(ggdist)
+
+ggplot(drop_na(penguins, body_mass_g),
+       aes(x = species, y = body_mass_g, fill = species)) +
+  stat_halfeye(adjust = 0.5, width = 0.6, .width = 0,
+               justification = -0.3, point_color = NA) +
+  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.7) +
+  geom_jitter(width = 0.05, alpha = 0.3, size = 1.2) +
+  scale_fill_manual(values = epi_colors) +
+  coord_cartesian(xlim = c(1.2, NA), clip = "off") +
+  labs(title = "Gentoo Penguins Are Substantially Heavier",
+       subtitle = "Distribution, median, and individual observations of body mass by species",
+       x = NULL, y = "Body mass (g)",
+       caption = "Source: palmerpenguins R package") +
+  theme(legend.position = "none",
+        panel.grid.major.x = element_blank())
+```
+
+::: {.fragment .finding-box}
+The final chart shows the **distribution** (raincloud), the **summary** (boxplot), the **raw data** (jitter), and a **conclusion** baked into the title. That is the difference between a chart and a *finding*.
+:::
+
+
+## Iterations 1 and 2: From Default to Honest
+
+```{r}
+#| label: fig-four-iterations-a
+#| echo: false
+#| fig-height: 5
+#| fig-width: 12
+
+p1 <- ggplot(penguins, aes(x = species, y = body_mass_g)) +
+  geom_boxplot() +
+  labs(title = "1. Default", x = NULL, y = NULL) +
+  theme_grey(base_size = 13)
+
+p2 <- ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  geom_jitter(width = 0.2, alpha = 0.4, size = 1.4) +
+  scale_fill_manual(values = epi_colors) +
+  labs(title = "2. Show the data", x = NULL, y = NULL) +
+  theme_epi553(base_size = 13) +
+  theme(legend.position = "none")
+
+p1 + p2 +
+  plot_annotation(
+    title = "Step 1: basic summary; Step 2: show the raw data",
+    subtitle = "The second version is immediately more informative because students can see spread, outliers, and sample size",
+    theme = theme(plot.title = element_text(face = "bold", size = 16),
+                  plot.subtitle = element_text(color = "grey40", size = 12))
+  )
+```
+
+## Iterations 3 and 4: From Clean to Editorial
+
+```{r}
+#| label: fig-four-iterations-b
+#| echo: false
+#| fig-height: 5
+#| fig-width: 12
+
+p3 <- ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA, color = "grey20") +
+  geom_jitter(width = 0.2, alpha = 0.4, color = "grey30", size = 1.4) +
+  scale_fill_manual(values = epi_colors) +
+  labs(title = "3. Labels + theme", x = NULL, y = NULL) +
+  theme_epi553(base_size = 13) +
+  theme(legend.position = "none")
+
+p4 <- ggplot(drop_na(penguins, body_mass_g),
+      aes(x = species, y = body_mass_g, fill = species)) +
+  stat_halfeye(adjust = 0.5, width = 0.6, .width = 0,
+               justification = -0.3, point_color = NA) +
+  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.7) +
+  geom_jitter(width = 0.05, alpha = 0.3, size = 1) +
+  scale_fill_manual(values = epi_colors) +
+  coord_cartesian(xlim = c(1.2, NA), clip = "off") +
+  labs(title = "4. Editorial polish", x = NULL, y = NULL) +
+  theme_epi553(base_size = 13) +
+  theme(legend.position = "none", panel.grid.major.x = element_blank())
+
+p3 + p4 +
+  plot_annotation(
+    title = "Step 3: sharpen the labels; Step 4: add narrative polish",
+    subtitle = "Now the audience can compare whether the added design choices actually improve the message",
+    theme = theme(plot.title = element_text(face = "bold", size = 16),
+                  plot.subtitle = element_text(color = "grey40", size = 12))
+  )
+```
+
+
+## Explore These Online {.smaller}
+
+Keep this list short during lecture; share the longer reading list on Brightspace or in your notes.
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Start here
+
+- [From Data to Viz](https://www.data-to-viz.com)
+- [R Graph Gallery](https://r-graph-gallery.com)
+- [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/)
+
+:::
+
+::: {.column width="50%"}
+
+### For inspiration
+
+- [Cedric Scherer's portfolio](https://www.cedricscherer.com/top/dataviz/)
+- [The Pudding](https://pudding.cool)
+- [Our World in Data](https://ourworldindata.org)
+
+:::
+
+::::
+
+
+## Foundations Summary {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- **Build in layers**
+  Start with data, mapping, and geometry
+- **Show the data**
+  Prefer raw observations plus a summary
+- **Use strong encodings**
+  Position usually beats area and color
+- **Quantify uncertainty**
+  CIs and distribution displays matter
+
+:::
+
+::: {.column width="50%"}
+
+- **Label directly**
+  Reduce legend lookups when you can
+- **Strip clutter**
+  Remove anything that does not aid comparison
+- **Write takeaway titles**
+  Titles should state the finding
+- **Iterate**
+  Your fourth version is often the best one
+
+:::
+
+::::
+
+# Part 7 {background-color="#46166B" .section-slide}
+
+## Color, Type, and Accessibility
+
+Choosing color is a design *and* an ethics decision.
+
+
+## Color Principles {.smaller}
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+### The Four Types of Color Scales
+
+1. [**Categorical / Qualitative**]{.emphasis}: distinct hues, no ranking
+   - `Set2`, `Dark2`, Okabe-Ito
+2. [**Sequential**]{.emphasis}: light to dark, one or two hues
+   - `viridis`, `mako`, `Blues`
+3. [**Diverging**]{.emphasis}: two hues meeting at a neutral midpoint
+   - `RdBu`, `BrBG` (only when there is a meaningful zero)
+4. [**Highlight**]{.emphasis}: one color for the story, grey for context
+
+:::
+
+::: {.column width="45%"}
+
+```{r}
+#| label: fig-okabe-ito
+#| echo: false
+#| fig-height: 6
+
+okabe_ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442",
+               "#0072B2", "#D55E00", "#CC79A7", "#000000")
+
+tibble(
+  color = okabe_ito,
+  name = c("Orange", "Sky Blue", "Green", "Yellow",
+           "Blue", "Vermillion", "Pink", "Black"),
+  y = rev(seq_along(okabe_ito))
+) |>
+  ggplot(aes(x = 1, y = y, fill = color)) +
+  geom_tile(width = 0.6, height = 0.85) +
+  geom_text(aes(label = paste(name, " ", color)),
+            hjust = -0.1, x = 1.35, size = 5, fontface = "bold") +
+  scale_fill_identity() +
+  scale_x_continuous(limits = c(0.5, 3.5)) +
+  labs(title = "Okabe-Ito Palette",
+       subtitle = "Designed for colorblind accessibility") +
+  theme_void(base_size = 14) +
+  theme(plot.title = element_text(face = "bold"),
+        plot.subtitle = element_text(color = "grey40"))
+```
+
+:::
+
+::::
+
+
+## Why Colorblind Safety Matters
+
+About **8% of men** and **0.5% of women** have some form of color vision deficiency.
+
+```{r}
+#| label: fig-colorblind-demo
+#| echo: false
+#| fig-height: 4.5
+
+p_bad <- ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point(size = 2.5, alpha = 0.8) +
+  scale_color_manual(values = c("red", "green", "blue")) +
+  labs(title = "Red-Green-Blue: invisible to ~8% of men",
+       x = "Bill length (mm)", y = "Bill depth (mm)") +
+  theme_epi553(base_size = 12)
+
+p_good <- ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm, color = species)) +
+  geom_point(size = 2.5, alpha = 0.8) +
+  scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73")) +
+  labs(title = "Okabe-Ito: safe for all viewers",
+       x = "Bill length (mm)", y = "Bill depth (mm)") +
+  theme_epi553(base_size = 12)
+
+p_bad + p_good +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+```
+
+::: {.highlight-box}
+**Rule of thumb**: use `viridis`-family palettes by default. Check with `colorBlindness::cvdPlot()` or [coblis.com](https://www.color-blindness.com/coblis-color-blindness-simulator/).
+:::
+
+
+## Typography and Direct Labeling
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Typography Rules
+
+- **One font family** consistently
+- Title: **bold, slightly larger**
+- Subtitle: regular, grey
+- Caption: small, grey, data source
+- Avoid serifs in dense charts
+- Good sans-serifs: Atkinson Hyperlegible, Inter, Source Sans Pro
+
+:::
+
+::: {.column width="50%"}
+
+### Direct Labeling
+
+Put the label **next to the thing it labels**.
+
+Legends force the eye to bounce between chart and key.
+
+Direct labels eliminate that bounce.
+
+::: {.fragment}
+```r
+# Instead of a legend:
+geom_text_repel(
+  data = filter(df, year == max(year)),
+  aes(label = group)
+)
+```
+:::
+
+:::
+
+::::
+
+
+## The Visualization Checklist {.smaller}
+
+::: {.checklist}
+
+Before you submit a chart, ask:
+
+- Does the title state the **finding**, not the topic?
+- Is the y-axis at zero (for bar charts) or appropriately scaled?
+- Are **units** labeled?
+- Is there a **source caption**?
+- Is the color palette **colorblind-safe**?
+- Are uncertainty intervals shown?
+- Could a reader explain the chart in **one sentence**?
+
+:::
+
+
+# Part 8 {background-color="#46166B" .section-slide}
+
+## Modern Techniques and Advanced Aesthetics
+
+The "show me what is possible" tour.
+
+
+## 8.1 Highlighting with gghighlight {.smaller}
+
+Many groups, but only a few matter to your story. **Highlighting** fades out the context.
+
+:::: {.columns}
+
+::: {.column width="45%"}
+
+```{r}
+#| label: fig-highlight-code
+#| eval: false
+
+library(gghighlight)
+
+gapminder_like <- penguins |>
+  drop_na() |>
+  summarise(
+    mean_mass = mean(body_mass_g),
+    .by = c(species, year)
+  )
+
+ggplot(gapminder_like,
+       aes(x = year, y = mean_mass,
+           color = species)) +
+  geom_line(linewidth = 1.4) +
+  geom_point(size = 3.5) +
+  gghighlight(
+    species == "Gentoo",
+    unhighlighted_params = list(
+      color = "grey80",
+      linewidth = 0.8)) +
+  scale_color_manual(
+    values = c("Gentoo" = "#2E86AB"))
+```
+
+:::
+
+::: {.column width="55%"}
+
+```{r}
+#| label: fig-highlight
+#| echo: false
+#| fig-height: 6
+
+library(gghighlight)
+
+gapminder_like <- penguins |>
+  drop_na() |>
+  summarise(mean_mass = mean(body_mass_g), .by = c(species, year))
+
+ggplot(gapminder_like, aes(x = year, y = mean_mass, color = species)) +
+  geom_line(linewidth = 1.4) +
+  geom_point(size = 3.5) +
+  gghighlight(species == "Gentoo",
+              unhighlighted_params = list(color = "grey80", linewidth = 0.8)) +
+  scale_color_manual(values = c("Gentoo" = "#2E86AB")) +
+  labs(title = "Gentoo Penguins Stand Out",
+       subtitle = "Other species recede into the background",
+       x = NULL, y = "Mean body mass (g)") +
+  theme(legend.position = "none")
+```
+
+:::
+
+::::
+
+::: {.highlight-box}
+The eye is drawn instantly to the highlighted line, but the reader still has full context.
+:::
+
+
+## 8.2 Animation with gganimate {.smaller}
+
+Time-series and longitudinal data come alive when animated. Build a standard ggplot, then add a `transition_*()` layer.
+
+```{r}
+#| eval: false
+
+library(gganimate)
+library(gapminder)
+
+p <- ggplot(gapminder,
+            aes(x = gdpPercap, y = lifeExp, size = pop, color = continent)) +
+  geom_point(alpha = 0.7) +
+  scale_x_log10() +
+  scale_size(range = c(2, 12), guide = "none") +
+  scale_color_brewer(palette = "Set2") +
+  labs(title = "Year: {frame_time}",
+       x = "GDP per capita (log scale)", y = "Life expectancy (years)") +
+  theme_epi553() +
+  transition_time(year) +        # <-- this is the only new line
+  ease_aes("cubic-in-out")
+
+animate(p, nframes = 100, fps = 10, width = 800, height = 500)
+```
+
+### Key Transition Functions
+
+| Function | What it animates | Example |
+|----------|------------------|---------|
+| `transition_time()` | Continuous variable (year, day) | Gapminder bubble chart |
+| `transition_states()` | Discrete variable, pauses on each | Before/after comparison |
+| `transition_reveal()` | Progressive reveal along an axis | Drawing a time series |
+
+::: {.highlight-box}
+**Tip from Cedric Scherer:** animations should serve a narrative purpose. If the same insight is clearer in a static small-multiple, prefer the static version.
+:::
+
+
+## 8.3 Interactive Charts {.smaller}
+
+### plotly: instant interactivity from any ggplot
+
+```{r}
+#| label: fig-plotly
+#| fig-height: 4.5
+
+library(plotly)
+
+p <- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g,
+                          color = species,
+                          text = paste0("Island: ", island,
+                                        "<br>Sex: ", sex,
+                                        "<br>Year: ", year))) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_color_manual(values = epi_colors) +
+  labs(x = "Bill length (mm)", y = "Body mass (g)") +
+  theme_epi553(base_size = 11)
+
+ggplotly(p, tooltip = "text", height = 400)
+```
+
+
+## 8.3 Interactive Charts: ggiraph {.smaller}
+
+ggiraph: finer control, hover effects, click events. **Hover over points below!**
+
+```{r}
+#| label: fig-ggiraph
+#| code-fold: true
+#| code-summary: "Show the ggiraph code"
+
+library(ggiraph)
+
+p <- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g, color = species)) +
+  geom_point_interactive(
+    aes(tooltip = paste("Species:", species, "<br>Island:", island,
+                        "<br>Mass:", body_mass_g, "g"),
+        data_id = species),
+    size = 2.5, alpha = 0.7
+  ) +
+  scale_color_manual(values = epi_colors) +
+  labs(x = "Bill length (mm)", y = "Body mass (g)") +
+  theme_epi553(base_size = 11)
+
+girafe(ggobj = p, height_svg = 3.5, width_svg = 8,
+       options = list(
+         opts_hover(css = "stroke:black;stroke-width:2px;fill-opacity:1;"),
+         opts_hover_inv(css = "opacity:0.2;")
+       ))
+```
+
+
+## 8.4 Distributions: Raincloud Plots {.smaller}
+
+Boxplots hide bimodality. Histograms hide group differences. **Raincloud plots show everything.**
+
+```{r}
+#| label: fig-raincloud
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+library(ggdist)
+
+ggplot(drop_na(penguins, body_mass_g),
+       aes(x = body_mass_g, y = species, fill = species)) +
+  stat_halfeye(adjust = 0.6, .width = 0, justification = -0.2,
+               point_color = NA, alpha = 0.7) +
+  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.5) +
+  geom_jitter(height = 0.07, alpha = 0.3, size = 1.2) +
+  scale_fill_manual(values = epi_colors) +
+  labs(title = "Raincloud Plot of Penguin Body Mass",
+       subtitle = "Distribution + boxplot + raw observations in one chart",
+       x = "Body mass (g)", y = NULL) +
+  theme(legend.position = "none")
+```
+
+
+## 8.4 Distributions: Ridge Plots {.smaller}
+
+When you want to compare distributions across **many groups** in a small space.
+
+```{r}
+#| label: fig-ridges
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+library(ggridges)
+
+ggplot(diamonds, aes(x = price, y = cut, fill = cut)) +
+  geom_density_ridges(alpha = 0.8, scale = 1.1) +
+  scale_x_log10(labels = label_dollar()) +
+  scale_fill_viridis_d(option = "mako") +
+  labs(title = "Distribution of Diamond Prices by Cut",
+       subtitle = "Ridge plots make many distributions easy to compare",
+       x = "Price (log scale)", y = NULL) +
+  theme(legend.position = "none")
+```
+
+
+## 8.5 Uncertainty You Can See {.smaller}
+
+Confidence intervals as skinny error bars often get missed. Show the **whole distribution**.
+
+```{r}
+#| label: fig-uncertainty
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+library(ggdist)
+library(distributional)
+
+estimates <- tibble(
+  predictor = c("Smoking", "Exercise", "Income", "Sleep", "Age"),
+  estimate  = c(0.65, -0.45, -0.20, -0.30, 0.05),
+  se        = c(0.10, 0.08, 0.07, 0.09, 0.04)
+)
+
+ggplot(estimates, aes(y = fct_reorder(predictor, estimate),
+                      xdist = dist_normal(estimate, se))) +
+  stat_halfeye(.width = c(0.5, 0.95), fill = "#2E86AB",
+               slab_alpha = 0.6, point_size = 3.5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
+  labs(title = "Coefficient Plot with Full Sampling Distributions",
+       subtitle = "Thick band = 50% interval, thin line = 95% interval",
+       x = "Log odds ratio", y = NULL)
+```
+
+::: {.fragment .finding-box}
+This is far more honest than a forest plot of point estimates with whiskers, because the reader can see the **shape** of the uncertainty.
+:::
+
+
+## 8.6 Patchwork: Composing Multi-Panel Figures {.smaller}
+
+```{r}
+#| label: fig-patchwork
+#| code-fold: true
+#| code-summary: "Show the patchwork code"
+#| fig-height: 5.5
+
+p_scatter <- ggplot(penguins, aes(bill_length_mm, body_mass_g, color = species)) +
+  geom_point(alpha = 0.7, size = 2) +
+  scale_color_manual(values = epi_colors) +
+  theme(legend.position = "none") +
+  labs(x = "Bill length (mm)", y = "Body mass (g)")
+
+p_top <- ggplot(penguins, aes(bill_length_mm, fill = species)) +
+  geom_density(alpha = 0.6) +
+  scale_fill_manual(values = epi_colors) +
+  theme_void() + theme(legend.position = "none")
+
+p_right <- ggplot(penguins, aes(body_mass_g, fill = species)) +
+  geom_density(alpha = 0.6) +
+  scale_fill_manual(values = epi_colors) +
+  coord_flip() +
+  theme_void() + theme(legend.position = "none")
+
+(p_top + plot_spacer() + p_scatter + p_right +
+    plot_layout(ncol = 2, widths = c(4, 1), heights = c(1, 4))) +
+  plot_annotation(
+    title = "Marginal Density + Scatterplot",
+    subtitle = "Composed with patchwork: p_top + plot_spacer() + p_scatter + p_right",
+    theme = theme(plot.title = element_text(face = "bold", size = 16),
+                  plot.subtitle = element_text(color = "grey40", family = "Fira Code",
+                                               size = 11))
+  )
+```
+
+
+## Patchwork Syntax Cheat Sheet
+
+The arithmetic is intuitive:
+
+```{r}
+#| eval: false
+#| code-line-numbers: "1|2|3|4|5"
+
+p1 + p2              # side by side
+p1 / p2              # stacked vertically
+(p1 | p2) / p3       # two on top, one below
+p1 + p2 + p3 + plot_layout(ncol = 2)  # grid layout
+p1 + plot_annotation(title = "Combined Figure")  # annotation
+```
+
+
+## 8.7 Annotation as a First-Class Citizen {.smaller}
+
+The fastest way to make a chart "editorial": **annotate the finding directly on the chart**.
+
+```{r}
+#| label: fig-annotation
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+library(ggtext)
+
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point(alpha = 0.7, size = 2.2) +
+  annotate("curve", x = 175, y = 5500, xend = 210, yend = 5100,
+           arrow = arrow(length = unit(0.25, "cm")),
+           curvature = -0.3, color = "grey30", linewidth = 0.6) +
+  annotate("label", x = 173, y = 5650,
+           label = "Gentoos cluster in the\nheavy / long-flipper corner",
+           hjust = 0, size = 4.2, color = "grey20", lineheight = 0.95,
+           fill = "#fff8e1", label.size = 0, fontface = "italic") +
+  scale_color_manual(values = epi_colors) +
+  labs(title = "Body mass scales with flipper length, but <span style='color:#46166B;'>**species matter**</span>",
+       subtitle = "Annotated with a callout arrow and label box",
+       x = "Flipper length (mm)", y = "Body mass (g)",
+       color = NULL) +
+  theme(plot.title = element_markdown(face = "bold", size = 16),
+        legend.position = "top")
+```
+
+
+## 8.8 Spatial Visualization with sf {.smaller}
+
+Public health data are almost always spatial. The `sf` package gives ggplot2 first-class support.
+
+```{r}
+#| label: fig-spatial
+#| code-fold: true
+#| code-summary: "Show the spatial code"
+#| fig-height: 5.5
+
+library(sf)
+library(tigris)
+options(tigris_use_cache = TRUE)
+
+ny_counties <- counties(state = "NY", cb = TRUE, class = "sf")
+ny_counties$fmd_prev <- runif(nrow(ny_counties), 8, 18)
+
+ggplot(ny_counties) +
+  geom_sf(aes(fill = fmd_prev), color = "white", linewidth = 0.2) +
+  scale_fill_viridis_c(option = "rocket", direction = -1,
+                       name = "FMD %") +
+  labs(title = "Frequent Mental Distress Prevalence by NY County",
+       subtitle = "Hypothetical data for demonstration",
+       caption = "Source: U.S. Census Bureau (TIGER/Line)") +
+  theme_void(base_size = 14) +
+  theme(plot.title = element_text(face = "bold"),
+        plot.subtitle = element_text(color = "grey40"))
+```
+
+
+## 8.9 Tables as Visualizations: gt + gtExtras {.smaller}
+
+Sometimes the right visualization is a **table**. `gt` makes editorial-quality tables with inline plots.
+
+```{r}
+#| label: tbl-gt-demo
+#| code-fold: true
+#| code-summary: "Show the gt code"
+
+library(gt)
+library(gtExtras)
+
+penguins |>
+  drop_na() |>
+  summarise(
+    n = n(),
+    mean_mass = mean(body_mass_g),
+    sd_mass = sd(body_mass_g),
+    masses = list(body_mass_g),
+    .by = species
+  ) |>
+  gt() |>
+  gt_plt_dist(masses, type = "density", fill_color = "#2E86AB") |>
+  fmt_number(mean_mass, decimals = 0) |>
+  fmt_number(sd_mass, decimals = 0) |>
+  cols_label(species = "Species", n = "N",
+             mean_mass = "Mean (g)", sd_mass = "SD (g)",
+             masses = "Distribution") |>
+  tab_header(title = md("**Penguin Body Mass by Species**"),
+             subtitle = "Summary statistics with inline density plots") |>
+  gt_theme_538() |>
+  tab_options(table.width = pct(90))
+```
+
+
+## 8.10 Heatmaps and Correlation Matrices {.smaller}
+
+Heatmaps turn a matrix of numbers into a pattern you can *see*. Essential for correlation tables, confusion matrices, and time-by-group summaries.
+
+```{r}
+#| label: fig-heatmap
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5.5
+
+# Correlation matrix of numeric penguin variables
+cor_data <- penguins |>
+  drop_na() |>
+  select(where(is.numeric)) |>
+  cor() |>
+  as.data.frame() |>
+  rownames_to_column("var1") |>
+  pivot_longer(-var1, names_to = "var2", values_to = "cor")
+
+ggplot(cor_data, aes(x = var1, y = var2, fill = cor)) +
+  geom_tile(color = "white", linewidth = 0.8) +
+  geom_text(aes(label = round(cor, 2),
+                color = abs(cor) > 0.6),
+            size = 4.5, fontface = "bold") +
+  scale_fill_gradient2(low = "#D55E00", mid = "white", high = "#0072B2",
+                       midpoint = 0, limits = c(-1, 1),
+                       name = "Correlation") +
+  scale_color_manual(values = c("TRUE" = "white", "FALSE" = "grey20"),
+                     guide = "none") +
+  scale_x_discrete(labels = \(x) str_replace_all(x, "_", "\n")) +
+  scale_y_discrete(labels = \(x) str_replace_all(x, "_", "\n")) +
+  labs(title = "Correlation Heatmap of Penguin Measurements",
+       subtitle = "Color intensity encodes strength; text encodes exact value",
+       x = NULL, y = NULL) +
+  coord_fixed() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10),
+        axis.text.y = element_text(size = 10),
+        panel.grid = element_blank())
+```
+
+
+## 8.11 Dumbbell Charts: Showing Change {.smaller}
+
+When you need to show the difference between two time points or conditions, **dumbbell charts** are more effective than grouped bars.
+
+```{r}
+#| label: fig-dumbbell
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+# Simulated epi example: disease rates before/after intervention
+intervention_data <- tibble(
+  county = c("Albany", "Saratoga", "Rensselaer", "Schenectady",
+             "Columbia", "Greene", "Warren", "Washington"),
+  before = c(15.2, 12.8, 18.1, 16.5, 11.3, 14.7, 9.8, 13.2),
+  after  = c(11.1, 10.2, 12.4, 13.8, 9.5, 11.0, 8.1, 10.9)
+) |>
+  mutate(change = after - before,
+         county = fct_reorder(county, change))
+
+ggplot(intervention_data) +
+  geom_segment(aes(x = before, xend = after,
+                   y = county, yend = county),
+               color = "grey60", linewidth = 1.2) +
+  geom_point(aes(x = before, y = county), color = "#D55E00",
+             size = 4) +
+  geom_point(aes(x = after, y = county), color = "#0072B2",
+             size = 4) +
+  annotate("text", x = 19, y = 8.3, label = "Before",
+           color = "#D55E00", fontface = "bold", size = 4.5) +
+  annotate("text", x = 19, y = 7.7, label = "After",
+           color = "#0072B2", fontface = "bold", size = 4.5) +
+  labs(title = "Every County Improved After the Intervention",
+       subtitle = "Rate per 1,000 population, before vs. after community health program",
+       x = "Rate per 1,000", y = NULL) +
+  scale_x_continuous(limits = c(7, 20))
+```
+
+::: {.highlight-box}
+Dumbbell charts encode **direction**, **magnitude**, and **rank** simultaneously. Far more effective than grouped bar charts for before/after comparisons.
+:::
+
+
+## 8.12 Build Your Own Reusable Theme {.smaller}
+
+Package your style as a function. Reuse it across every chart.
+
+```{r}
+#| code-line-numbers: "1-2|3-5|6-8|9-12|13-15"
+
+theme_epi553 <- function(base_size = 14) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", size = base_size + 4,
+                                color = "#1a1a2e"),
+      plot.subtitle = element_text(color = "grey40"),
+      plot.caption = element_text(color = "grey60", size = base_size - 3,
+                                  hjust = 0),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "grey92"),
+      axis.title = element_text(color = "grey30"),
+      strip.text = element_text(face = "bold"),
+      legend.position = "top",
+      plot.title.position = "plot",
+      plot.caption.position = "plot"
+    )
+}
+```
+
+::: {.highlight-box}
+**Practical tip**: drop `theme_epi553()` into a `themes.R` file. Source it from every analysis. Consistent figures without effort.
+:::
+
+
+## 8.13 The Modern Workflow
+
+::: {.incremental}
+
+1. **Sketch first.** On paper. What is the story?
+2. **Prototype in ggplot2** with default themes. Get the geometry right.
+3. **Iterate the encoding.** Try three chart types. Pick one.
+4. **Layer in annotations.** Title is the finding. Direct labels. Callouts.
+5. **Polish the theme.** Fonts, colors, spacing.
+6. **Export at the right resolution.**
+
+:::
+
+::: {.fragment}
+```{r}
+#| eval: false
+
+ggsave("figure_1.png", width = 8, height = 5, dpi = 300, bg = "white")
+ggsave("figure_1.svg", width = 8, height = 5)        # vector for editorial
+ggsave("figure_1.pdf", width = 8, height = 5,
+       device = cairo_pdf)                             # high-quality PDF
+```
+:::
+
+::: {.fragment .finding-box}
+**Step 7:** Show it to a colleague. If they cannot explain the chart in 10 seconds, iterate.
+:::
+
+
+# Part 9 {background-color="#46166B" .section-slide}
+
+## Visualizing Regression Models
+
+You have spent the semester building models. Now make them *visible*.
+
+
+## The Problem with Regression Tables {.smaller}
+
+:::: {.columns}
+
+::: {.column width="45%"}
+
+### What reviewers see
+
+A wall of numbers:
+
+| Term | Estimate | SE | p |
+|------|----------|-----|------|
+| (Intercept) | -1.23 | 0.41 | 0.003 |
+| Smoking | 0.65 | 0.10 | <0.001 |
+| Exercise | -0.45 | 0.08 | <0.001 |
+| Income | -0.20 | 0.07 | 0.004 |
+| Sleep | -0.30 | 0.09 | 0.001 |
+| Age | 0.05 | 0.04 | 0.211 |
+
+:::
+
+::: {.column width="55%"}
+
+### What readers *understand*
+
+```{r}
+#| label: fig-coef-plot-intro
+#| echo: false
+#| fig-height: 5.5
+
+library(ggdist)
+library(distributional)
+
+estimates <- tibble(
+  predictor = c("Smoking", "Exercise", "Income", "Sleep", "Age"),
+  estimate  = c(0.65, -0.45, -0.20, -0.30, 0.05),
+  se        = c(0.10, 0.08, 0.07, 0.09, 0.04)
+) |>
+  mutate(
+    lower = estimate - 1.96 * se,
+    upper = estimate + 1.96 * se,
+    significant = !(lower <= 0 & upper >= 0)
+  )
+
+ggplot(estimates, aes(x = estimate,
+                      y = fct_reorder(predictor, estimate),
+                      color = significant)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = lower, xmax = upper),
+                  size = 0.8, linewidth = 1.1) +
+  scale_color_manual(values = c("TRUE" = "#2E86AB", "FALSE" = "grey60"),
+                     guide = "none") +
+  labs(title = "Same Model, Instantly Readable",
+       subtitle = "Blue = significant at p < 0.05; grey = non-significant",
+       x = "Log odds ratio (95% CI)", y = NULL)
+```
+
+:::
+
+::::
+
+::: {.finding-box}
+A coefficient plot communicates **direction**, **magnitude**, **uncertainty**, and **significance** in one glance. A table requires row-by-row mental math.
+:::
+
+
+## Forest Plots from Real Models {.smaller}
+
+Fit a logistic regression on the penguins data and plot the odds ratios directly.
+
+```{r}
+#| label: fig-forest-real
+#| code-fold: true
+#| code-summary: "Show the full code"
+#| fig-height: 5.5
+
+library(broom)
+
+# Fit a logistic regression: predict heavy penguin (above median mass)
+model_data <- penguins |>
+  drop_na() |>
+  mutate(heavy = as.integer(body_mass_g > median(body_mass_g)))
+
+fit <- glm(heavy ~ bill_length_mm + bill_depth_mm + flipper_length_mm +
+             species + sex,
+           data = model_data, family = binomial)
+
+# Tidy the model output (use Wald CIs for stability)
+model_tidy <- tidy(fit, exponentiate = TRUE) |>
+  filter(term != "(Intercept)") |>
+  mutate(
+    conf.low = exp(log(estimate) - 1.96 * std.error),
+    conf.high = exp(log(estimate) + 1.96 * std.error),
+    term = case_match(term,
+      "bill_length_mm" ~ "Bill length (mm)",
+      "bill_depth_mm" ~ "Bill depth (mm)",
+      "flipper_length_mm" ~ "Flipper length (mm)",
+      "speciesChinstrap" ~ "Chinstrap vs. Adelie",
+      "speciesGentoo" ~ "Gentoo vs. Adelie",
+      "sexmale" ~ "Sex (male vs. female)"
+    ),
+    significant = p.value < 0.05
+  )
+
+ggplot(model_tidy, aes(x = estimate, y = fct_reorder(term, estimate),
+                       color = significant)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high),
+                  size = 0.8, linewidth = 1.1) +
+  geom_text(aes(label = sprintf("OR = %.2f", estimate)),
+            vjust = -1, size = 3.8, show.legend = FALSE) +
+  scale_color_manual(values = c("TRUE" = "#e64173", "FALSE" = "grey60"),
+                     guide = "none") +
+  scale_x_log10() +
+  labs(title = "Predictors of Above-Median Body Mass (Logistic Regression)",
+       subtitle = "Odds ratios with 95% CI on log scale; red = p < 0.05",
+       x = "Odds Ratio (log scale)", y = NULL,
+       caption = "Model: glm(heavy ~ bill + flipper + species + sex, family = binomial)")
+```
+
+
+## Predicted Probability Curves {.smaller}
+
+Show what your model *predicts* across the range of a key variable, holding others at their means.
+
+```{r}
+#| label: fig-predicted-probs
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+library(broom)
+
+# Generate predictions across flipper length range
+pred_grid <- tibble(
+  flipper_length_mm = seq(170, 235, length.out = 200),
+  bill_length_mm = mean(model_data$bill_length_mm),
+  bill_depth_mm = mean(model_data$bill_depth_mm),
+  species = "Adelie",
+  sex = "female"
+)
+
+preds <- augment(fit, newdata = pred_grid, type.predict = "response",
+                 se_fit = TRUE) |>
+  mutate(lower = pmax(.fitted - 1.96 * .se.fit, 0),
+         upper = pmin(.fitted + 1.96 * .se.fit, 1))
+
+ggplot(preds, aes(x = flipper_length_mm, y = .fitted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper),
+              fill = "#2E86AB", alpha = 0.2) +
+  geom_line(color = "#2E86AB", linewidth = 1.3) +
+  geom_rug(data = model_data,
+           aes(x = flipper_length_mm, y = heavy),
+           sides = "tb", alpha = 0.15, color = "grey40") +
+  scale_y_continuous(labels = label_percent()) +
+  labs(title = "Predicted Probability of Above-Median Mass by Flipper Length",
+       subtitle = "Logistic regression (Adelie, female); rug marks show observed data",
+       x = "Flipper length (mm)", y = "Predicted probability",
+       caption = "Shaded band = approximate 95% confidence interval")
+```
+
+::: {.highlight-box}
+Predicted probability curves are one of the most effective ways to communicate logistic regression results to non-statisticians.
+:::
+
+
+## Marginal Effects with ggeffects {.smaller}
+
+The `ggeffects` package automates predicted value plots for any model class.
+
+:::: {.columns}
+
+::: {.column width="45%"}
+
+```{r}
+#| label: fig-ggeffects-code
+#| eval: false
+
+library(ggeffects)
+
+# One line to get predicted values
+preds <- ggpredict(fit,
+  terms = c("flipper_length_mm",
+            "sex"))
+
+# Built-in plot method
+plot(preds) +
+  labs(
+    title = "Marginal Effect of Flipper Length by Sex"
+  )
+
+# Or extract data for custom ggplot
+as.data.frame(preds) |>
+  ggplot(aes(x, predicted,
+             color = group)) +
+  geom_ribbon(...) +
+  geom_line(...)
+```
+
+:::
+
+::: {.column width="55%"}
+
+```{r}
+#| label: fig-ggeffects
+#| echo: false
+#| fig-height: 6
+
+library(ggeffects)
+
+preds <- ggpredict(fit, terms = c("flipper_length_mm [170:235 by=1]", "sex"),
+                   condition = c(species = "Adelie"))
+
+ggplot(as.data.frame(preds),
+       aes(x = x, y = predicted, color = group, fill = group)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.15,
+              color = NA) +
+  geom_line(linewidth = 1.2) +
+  scale_color_manual(values = c("female" = "#D55E00", "male" = "#0072B2")) +
+  scale_fill_manual(values = c("female" = "#D55E00", "male" = "#0072B2")) +
+  scale_y_continuous(labels = label_percent()) +
+  labs(title = "Marginal Effect of Flipper Length by Sex (Adelie)",
+       subtitle = "ggeffects automates predicted values for any model",
+       x = "Flipper length (mm)", y = "P(above-median mass)",
+       color = "Sex", fill = "Sex")
+```
+
+:::
+
+::::
+
+
+## Diagnostic Plots: the `performance` + `see` Packages {.smaller}
+
+The `performance` package (from easystats) provides model diagnostics; `see` visualizes them with ggplot2.
+
+```{r}
+#| label: fig-diagnostics
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+# Fit a linear model for diagnostics demo
+lm_fit <- lm(body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm + species,
+             data = drop_na(penguins))
+
+library(performance)
+library(see)
+
+check_model(lm_fit, check = c("linearity", "normality", "qq", "homogeneity"))
+```
+
+::: {.highlight-box}
+`check_model()` replaces the base R `plot(model)` with a modern, multi-panel diagnostic dashboard. One function call, publication-ready output.
+:::
+
+
+## Model Comparison Visualization {.smaller}
+
+When comparing nested or competing models, visualize the fit statistics side by side.
+
+```{r}
+#| label: fig-model-comparison
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-height: 5
+
+# Fit competing models
+m1 <- glm(heavy ~ flipper_length_mm, data = model_data, family = binomial)
+m2 <- glm(heavy ~ flipper_length_mm + species, data = model_data, family = binomial)
+m3 <- glm(heavy ~ flipper_length_mm + species + sex, data = model_data, family = binomial)
+m4 <- fit  # full model from earlier
+
+# Helper to get Wald CIs
+tidy_wald <- function(mod, label) {
+  tidy(mod, exponentiate = TRUE) |>
+    mutate(conf.low = exp(log(estimate) - 1.96 * std.error),
+           conf.high = exp(log(estimate) + 1.96 * std.error),
+           model = label)
+}
+
+# Compare coefficients across models
+models_tidy <- bind_rows(
+  tidy_wald(m1, "Model 1:\nFlipper only"),
+  tidy_wald(m2, "Model 2:\n+ Species"),
+  tidy_wald(m3, "Model 3:\n+ Sex"),
+  tidy_wald(m4, "Model 4:\n+ Bill measures")
+) |>
+  filter(term == "flipper_length_mm")
+
+ggplot(models_tidy, aes(x = estimate, y = model)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high),
+                  color = "#2E86AB", size = 1, linewidth = 1.1) +
+  geom_text(aes(label = sprintf("OR = %.2f (%.2f, %.2f)",
+                                estimate, conf.low, conf.high)),
+            vjust = -1.2, size = 3.8, color = "grey30") +
+  scale_x_log10() +
+  labs(title = "How Stable Is the Flipper Length Effect Across Models?",
+       subtitle = "Odds ratio for flipper_length_mm as covariates are added",
+       x = "Odds Ratio (log scale)", y = NULL,
+       caption = "Stable estimates across nested models suggest robust association")
+```
+
+
+## The #30DayChartChallenge {.smaller}
+
+Every **April**, the data visualization community participates in the [#30DayChartChallenge](https://github.com/30DayChartChallenge/): one prompt per day, one chart per day, shared on social media. Created in 2021 by **Cedric Scherer** and **Dominic Roye**, inspired by the #30DayMapChallenge.
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Why It Matters for You
+
+::: {.incremental}
+- Forces you to **try chart types you would never pick** (waffle charts, bump charts, slope graphs, treemaps)
+- Builds a **public portfolio** of your work
+- Exposes you to how the **global community** solves the same prompt differently
+- Many prompts are epi-relevant: *uncertainty*, *distributions*, *time series*, *part-to-whole*, *relationships*
+:::
+
+### Five Categories (based on "The Graphic Continuum")
+
+1. **Comparisons** (days 1-6)
+2. **Distributions** (days 7-12)
+3. **Relationships** (days 13-18)
+4. **Time series** (days 19-24)
+5. **Uncertainties** (days 25-30)
+
+::: {.muted}
+Participants choose their own data and tools freely. The 2026 edition is at [github.com/30DayChartChallenge/Edition2026](https://github.com/30DayChartChallenge/Edition2026).
+:::
+
+:::
+
+::: {.column width="50%"}
+
+### Techniques You Can Steal
+
+| Prompt | Chart Type | R Package |
+|--------|-----------|-----------|
+| Part-to-whole | Waffle chart | `waffle` |
+| Ranking | Bump chart | `ggbump` |
+| Slope | Slope chart | `geom_segment` |
+| Circular | Polar bar | `coord_polar()` |
+| Uncertainty | Gradient intervals | `ggdist` |
+| Relationships | Network | `ggraph` + `tidygraph` |
+| Neo-geometric | Voronoi | `ggforce` |
+| Storytelling | Annotated timeline | `ggtext` + `annotate` |
+
+### Where to Explore
+
+- [github.com/30DayChartChallenge](https://github.com/30DayChartChallenge/) -- all editions since 2021
+- Search `#30DayChartChallenge` on Twitter/X or Mastodon
+- [Cedric Scherer's contributions](https://github.com/z3tt/30DayChartChallenge) -- R code for every entry
+- [R Graph Gallery](https://r-graph-gallery.com) -- reproducible R code for all chart types
+
+:::
+
+::::
+
+
+## Bonus: Waffle Chart {.smaller}
+
+A waffle chart is a **part-to-whole** alternative to pie charts, popularized by the #30DayChartChallenge. Each square = 1 unit.
+
+```{r}
+#| label: fig-waffle
+#| code-fold: true
+#| code-summary: "Show the waffle code"
+#| fig-height: 4.5
+
+library(waffle)
+
+penguin_counts <- penguins |>
+  drop_na() |>
+  count(species) |>
+  mutate(n_scaled = round(n / 5))  # each square = 5 penguins
+
+waffle(
+  c("Adelie" = penguin_counts$n_scaled[1],
+    "Chinstrap" = penguin_counts$n_scaled[2],
+    "Gentoo" = penguin_counts$n_scaled[3]),
+  rows = 5,
+  size = 1,
+  colors = c("#FF6B35", "#A23B72", "#2E86AB"),
+  title = "Palmer Penguins by Species",
+  xlab = "1 square = 5 penguins"
+) +
+  theme(plot.title = element_text(face = "bold", size = 16),
+        legend.position = "bottom")
+```
+
+::: {.highlight-box}
+**Challenge for you:** pick a prompt from the [#30DayChartChallenge](https://github.com/30DayChartChallenge/) and create a chart using a dataset from this semester. Share it!
+:::
+
+
+## Lecture Summary {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- **Build plots in layers**
+- **Show raw data whenever possible**
+- **Use uncertainty displays, not just point estimates**
+- **Prefer position over area for comparison**
+- **Make titles state the conclusion**
+
+:::
+
+::: {.column width="50%"}
+
+- **Use colorblind-safe palettes by default**
+- **Direct-label when the audience benefits**
+- **Remove nonessential visual clutter**
+- **Visualize models, do not just tabulate them**
+- **Iterate until the story is obvious**
+
+:::
+
+::::
+
+
+## References {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Books
+
+- Healy, K. (2018). *Data Visualization: A Practical Introduction*. [socviz.co](https://socviz.co)
+- Wilke, C. O. (2019). *Fundamentals of Data Visualization*. [clauswilke.com/dataviz](https://clauswilke.com/dataviz/)
+- Wickham, H. (2016). *ggplot2: Elegant Graphics for Data Analysis*. [ggplot2-book.org](https://ggplot2-book.org)
+
+### Foundational
+
+- Tufte, E. (2001). *The Visual Display of Quantitative Information* (2nd ed.)
+- Cleveland, W. S., & McGill, R. (1984). Graphical perception. *JASA*, 79(387), 531-554.
+
+:::
+
+::: {.column width="50%"}
+
+### Online Resources
+
+- Holtz, Y. [R Graph Gallery](https://r-graph-gallery.com)
+- Holtz, Y. & Healy, C. [From Data to Viz](https://www.data-to-viz.com)
+- Scherer, C. [Portfolio](https://www.cedricscherer.com)
+
+### Next Lecture (April 28)
+
+Course Review: putting the entire semester together.
+
+:::
+
+::::
+
+
+# {background-color="#0e1c36"}
+
+::: {style="text-align: center; margin-top: 20%;"}
+
+[Thank You]{style="font-family: 'Playfair Display'; font-size: 2.5em; color: #EAAA00; font-weight: 800;"}
+
+[EPI 553 | University at Albany]{style="color: rgba(255,255,255,0.7); font-size: 0.8em;"}
+
+:::

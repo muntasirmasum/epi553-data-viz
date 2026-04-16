@@ -1,0 +1,346 @@
+/*-- scss:defaults --*/
+
+// Fonts
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
+
+// Colors - editorial palette inspired by FiveThirtyEight / NYT
+$body-bg: #FFFFFF;
+$body-color: #2D2D2D;
+$link-color: #107895;
+$selection-bg: #FFEAA7;
+
+// Presentation settings
+$presentation-font-size-root: 36px;
+$font-family-sans-serif: "Atkinson Hyperlegible", -apple-system, BlinkMacSystemFont, sans-serif;
+$presentation-heading-font: "Playfair Display", Georgia, serif;
+$presentation-heading-color: #1a1a2e;
+$code-block-font-size: 0.65em;
+$code-color: #c7254e;
+$code-block-bg: #f8f9fa;
+
+// Brand colors
+$purple-dark: #46166B;
+$purple-mid: #512888;
+$gold: #EAAA00;
+$navy: #0e1c36;
+$teal: #107895;
+$coral: #e64173;
+$slate: #525f7f;
+$offwhite: #f7f7f7;
+
+/*-- scss:rules --*/
+
+// ==========================================
+// TITLE SLIDE
+// ==========================================
+#title-slide {
+  text-align: left;
+  padding-left: 5%;
+
+  .title {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 2.2em;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.15;
+    margin-bottom: 0.15em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .subtitle {
+    font-family: "Atkinson Hyperlegible", sans-serif;
+    font-size: 0.7em;
+    color: $gold;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin-top: 0;
+  }
+
+  .author {
+    font-size: 0.6em;
+    color: rgba(255,255,255,0.9);
+    margin-top: 1.5em;
+  }
+
+  .date {
+    font-size: 0.5em;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .title-logo {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    max-height: 80px;
+  }
+}
+
+// ==========================================
+// SECTION DIVIDER SLIDES
+// ==========================================
+.section-slide {
+  h2 {
+    font-size: 2em;
+    color: #ffffff !important;
+    border-bottom: 4px solid $gold;
+    padding-bottom: 0.3em;
+    display: inline-block;
+  }
+  p {
+    color: rgba(255,255,255,0.85) !important;
+    font-size: 0.8em;
+  }
+}
+
+// ==========================================
+// GENERAL SLIDE STYLING
+// ==========================================
+.reveal .slides section {
+  text-align: left;
+}
+
+.reveal h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  color: $purple-dark;
+  font-size: 1.4em;
+  border-bottom: 3px solid $gold;
+  padding-bottom: 0.15em;
+  margin-bottom: 0.5em;
+}
+
+.reveal h3 {
+  font-family: "Atkinson Hyperlegible", sans-serif;
+  font-weight: 700;
+  color: $teal;
+  font-size: 1.0em;
+  margin-top: 0.6em;
+}
+
+// ==========================================
+// TEXT UTILITIES
+// ==========================================
+.alert {
+  color: $coral;
+  font-weight: 700;
+}
+
+.emphasis {
+  color: $teal;
+  font-weight: 700;
+}
+
+.gold {
+  color: $gold;
+  font-weight: 700;
+}
+
+.muted {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.highlight-box {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e8f4f8 100%);
+  border-left: 5px solid $teal;
+  padding: 0.6em 1em;
+  border-radius: 0 8px 8px 0;
+  margin: 0.5em 0;
+  font-size: 0.85em;
+}
+
+.finding-box {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+  border-left: 5px solid $gold;
+  padding: 0.6em 1em;
+  border-radius: 0 8px 8px 0;
+  margin: 0.5em 0;
+}
+
+// ==========================================
+// QUOTE STYLING (editorial)
+// ==========================================
+.reveal blockquote {
+  background: $offwhite;
+  border-left: 5px solid $coral;
+  padding: 0.8em 1.2em;
+  margin: 0.6em 0;
+  font-style: italic;
+  font-size: 0.9em;
+  color: #444;
+  border-radius: 0 6px 6px 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.reveal blockquote p {
+  margin: 0;
+}
+
+// ==========================================
+// CODE BLOCKS
+// ==========================================
+.reveal pre {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid #e0e0e0;
+}
+
+.reveal pre code {
+  padding: 0.8em 1em;
+  font-family: "Fira Code", monospace;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+
+div.sourceCode {
+  border-radius: 8px;
+  border-left: 4px solid $teal;
+}
+
+// Code fold button styling
+.code-fold-btn {
+  font-family: "Atkinson Hyperlegible", sans-serif;
+  font-size: 0.7em;
+}
+
+// ==========================================
+// TABLES
+// ==========================================
+.reveal table {
+  font-size: 0.78em;
+  border-collapse: collapse;
+  margin: 0.5em auto;
+}
+
+.reveal table.compact-table {
+  font-size: 0.68em;
+}
+
+.reveal table thead th {
+  background: $navy;
+  color: #fff;
+  font-weight: 700;
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+
+.reveal table tbody td {
+  padding: 0.4em 0.8em;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.reveal table tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.reveal table tbody tr:hover {
+  background: #e8f4f8;
+}
+
+// ==========================================
+// LISTS
+// ==========================================
+.reveal ul, .reveal ol {
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+
+.reveal ul li::marker {
+  color: $teal;
+}
+
+.reveal ol li::marker {
+  color: $coral;
+  font-weight: 700;
+}
+
+// ==========================================
+// COLUMNS HELPER
+// ==========================================
+.columns-tight {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5em;
+  align-items: start;
+}
+
+// ==========================================
+// FOOTER AND SLIDE NUMBER
+// ==========================================
+.reveal .slide-number {
+  font-family: "Atkinson Hyperlegible", sans-serif;
+  font-size: 0.55em;
+  color: #999;
+}
+
+.reveal .footer {
+  font-size: 0.45em;
+  color: #999;
+}
+
+// ==========================================
+// PROGRESS BAR
+// ==========================================
+.reveal .progress span {
+  background: linear-gradient(90deg, $purple-dark, $teal);
+}
+
+// ==========================================
+// SMALLER TEXT CLASS
+// ==========================================
+.smaller {
+  font-size: 0.75em;
+}
+
+.tiny {
+  font-size: 0.6em;
+}
+
+// ==========================================
+// IMAGE STYLING
+// ==========================================
+.reveal img {
+  border-radius: 6px;
+}
+
+.framed {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 4px;
+}
+
+// ==========================================
+// CHECKLIST STYLING
+// ==========================================
+.checklist ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist ul li::before {
+  content: "☐ ";
+  color: $coral;
+  font-weight: bold;
+}
+
+// ==========================================
+// DAY DIVIDER
+// ==========================================
+.day-divider {
+  h2 {
+    font-size: 2.5em;
+    color: #fff !important;
+    text-align: center;
+    border: none;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  }
+  p {
+    text-align: center;
+    color: $gold !important;
+    font-size: 0.9em;
+    font-weight: 700;
+  }
+}

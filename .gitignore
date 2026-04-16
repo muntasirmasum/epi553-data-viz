@@ -1,0 +1,8 @@
+/.quarto/
+*_files/
+*.knit.md
+.Rhistory
+.RData
+.Rproj.user
+rsconnect/
+Data_Visualization_Lecture.html
