@@ -6,8 +6,9 @@ date: "April 21 & 24, 2026"
 format:
   revealjs:
     theme: [default, custom.scss]
-    transition: fade
+    transition: none
     transition-speed: fast
+    background-transition: none
     slide-number: c/t
     chalkboard: true
     preview-links: auto
